@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Alphabet Animal Parade</title>
+  <style>
+    /* ===== RESET & BASE ===== */
+    *, *::before, *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      height: 100%;
+      font-family: 'Segoe UI', 'SF Pro Display', system-ui, -apple-system, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+      -webkit-user-select: none;
+      user-select: none;
+      background: #f0f0f5;
+    }
+
+    /* ===== HOME PAGE ===== */
+    .home-page {
+      min-height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 1.5rem 1rem 2rem;
+      transition: opacity 0.3s ease;
+    }
+
+    .home-page.hidden {
+      display: none;
+    }
+
+    .home-title {
+      font-size: clamp(1.4rem, 4vw, 2.2rem);
+      font-weight: 800;
+      color: #333;
+      margin-bottom: 0.25rem;
+      text-align: center;
+      letter-spacing: -0.02em;
+    }
+
+    .home-subtitle {
+      font-size: clamp(0.75rem, 2vw, 1rem);
+      color: #999;
+      margin-bottom: 1.5rem;
+      text-align: center;
+    }
+
+    /* ===== LETTER GRID ===== */
+    .letter-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: clamp(8px, 2vw, 14px);
+      width: 100%;
+      max-width: 500px;
+    }
+
+    .letter-tile {
+      aspect-ratio: 1;
+      border-radius: clamp(12px, 3vw, 20px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .letter-tile:hover {
+      transform: scale(1.06);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+    }
+
+    .letter-tile:active {
+      transform: scale(0.96);
+    }
+
+    .letter-tile .tile-letter {
+      font-size: clamp(1.8rem, 6vw, 3rem);
+      font-weight: 900;
+      color: rgba(0,0,0,0.2);
+      line-height: 1;
+    }
+
+    .letter-tile .tile-animal {
+      font-size: clamp(0.5rem, 1.5vw, 0.7rem);
+      font-weight: 600;
+      color: rgba(0,0,0,0.25);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-top: 2px;
+    }
+
+    .letter-tile .tile-emoji {
+      position: absolute;
+      top: 4px;
+      right: 6px;
+      font-size: clamp(0.7rem, 2vw, 1rem);
+      opacity: 0.5;
+    }
+
+    /* Visited indicator */
+    .letter-tile.visited::after {
+      content: '✓';
+      position: absolute;
+      top: 4px;
+      left: 6px;
+      font-size: 0.6rem;
+      color: rgba(0,0,0,0.2);
+      font-weight: 700;
+    }
+
+    /* ===== DETAIL PAGE ===== */
+    .detail-page {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      cursor: pointer;
+      transition: background-color 0.4s ease;
+      overflow: hidden;
+    }
+
+    .detail-page.hidden {
+      display: none;
+    }
+
+    /* Back hint at top */
+    .back-hint {
+      position: absolute;
+      top: 1.2rem;
+      left: 0;
+      right: 0;
+      text-align: center;
+      font-size: clamp(0.7rem, 2vw, 0.9rem);
+      color: rgba(0,0,0,0.2);
+      z-index: 10;
+      pointer-events: none;
+    }
+
+    /* Detail letter */
+    .detail-letter {
+      font-size: clamp(7rem, 28vw, 14rem);
+      font-weight: 900;
+      color: rgba(0,0,0,0.1);
+      line-height: 1;
+      transition: transform 0.3s ease;
+    }
+
+    .detail-letter.bounce {
+      animation: bounce 0.6s ease;
+    }
+
+    /* Animal area */
+    .detail-animal-area {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.75rem;
+      min-height: 260px;
+      justify-content: center;
+      margin-top: 0.5rem;
+    }
+
+    .detail-image-wrapper {
+      width: clamp(160px, 45vw, 280px);
+      height: clamp(160px, 45vw, 280px);
+      border-radius: 24px;
+      overflow: hidden;
+      background: rgba(255,255,255,0.45);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transform: scale(0.4);
+      transition: opacity 0.5s cubic-bezier(0.34,1.56,0.64,1),
+                  transform 0.5s cubic-bezier(0.34,1.56,0.64,1);
+    }
+
+    .detail-image-wrapper.visible {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    .detail-image-wrapper img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .detail-fallback {
+      font-size: clamp(4rem, 14vw, 7rem);
+      text-align: center;
+    }
+
+    .detail-animal-name {
+      font-size: clamp(1.3rem, 4.5vw, 2.2rem);
+      font-weight: 800;
+      color: rgba(0,0,0,0.5);
+      opacity: 0;
+      transform: translateY(12px);
+      transition: opacity 0.4s ease 0.2s, transform 0.4s ease 0.2s;
+      text-align: center;
+    }
+
+    .detail-animal-name.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Tap to reveal hint */
+    .reveal-hint {
+      position: absolute;
+      bottom: 2rem;
+      text-align: center;
+      font-size: clamp(0.7rem, 2vw, 0.9rem);
+      color: rgba(0,0,0,0.2);
+      z-index: 10;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .reveal-hint.hidden {
+      opacity: 0;
+    }
+
+    /* Nav arrows on detail page */
+    .detail-nav {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 44px;
+      height: 44px;
+      border: none;
+      background: rgba(255,255,255,0.35);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border-radius: 50%;
+      font-size: 1.2rem;
+      color: rgba(0,0,0,0.3);
+      cursor: pointer;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s ease, transform 0.2s ease;
+    }
+
+    .detail-nav:hover {
+      background: rgba(255,255,255,0.55);
+      transform: translateY(-50%) scale(1.1);
+    }
+
+    .detail-nav:active {
+      transform: translateY(-50%) scale(0.95);
+    }
+
+    .detail-nav.left { left: 0.75rem; }
+    .detail-nav.right { right: 0.75rem; }
+
+    .detail-nav:disabled {
+      opacity: 0.15;
+      pointer-events: none;
+    }
+
+    /* ===== OPENING ANIMATION ===== */
+    @keyframes detail-open {
+      0% { opacity: 0; transform: scale(0.85); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+
+    .detail-page.opening {
+      animation: detail-open 0.35s cubic-bezier(0.34,1.56,0.64,1) forwards;
+    }
+
+    /* ===== ANIMATIONS ===== */
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      30% { transform: translateY(-25px); }
+      50% { transform: translateY(-12px); }
+      70% { transform: translateY(-6px); }
+    }
+
+    /* ===== CONFETTI ===== */
+    .confetti-piece {
+      position: fixed;
+      top: -10px;
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+      z-index: 200;
+      pointer-events: none;
+      animation: confetti-fall linear forwards;
+    }
+
+    @keyframes confetti-fall {
+      0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+      100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+    }
+
+    /* ===== SPINNER ===== */
+    .spinner {
+      width: 36px;
+      height: 36px;
+      border: 4px solid rgba(0,0,0,0.08);
+      border-top-color: rgba(0,0,0,0.25);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (min-width: 500px) {
+      .letter-grid {
+        grid-template-columns: repeat(5, 1fr);
+      }
+    }
+
+    @media (min-width: 700px) {
+      .letter-grid {
+        grid-template-columns: repeat(6, 1fr);
+        max-width: 650px;
+      }
+      .detail-nav {
+        width: 56px;
+        height: 56px;
+        font-size: 1.4rem;
+      }
+      .detail-nav.left { left: 2rem; }
+      .detail-nav.right { right: 2rem; }
+    }
+
+    @media (min-width: 1024px) {
+      .letter-grid {
+        grid-template-columns: repeat(7, 1fr);
+        max-width: 780px;
+      }
+    }
+
+    @media (max-height: 550px) {
+      .detail-letter { font-size: 5rem; }
+      .detail-image-wrapper { width: 130px; height: 130px; }
+      .detail-animal-area { min-height: 170px; gap: 0.4rem; }
+    }
+
+    /* ===== TILE ENTRANCE ANIMATION ===== */
+    @keyframes tile-pop {
+      0% { opacity: 0; transform: scale(0.5); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+
+    .letter-tile {
+      animation: tile-pop 0.4s cubic-bezier(0.34,1.56,0.64,1) backwards;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ===================== HOME PAGE ===================== -->
+<div class="home-page" id="homePage">
+  <h1 class="home-title">🦁 Alphabet Animal Parade</h1>
+  <p class="home-subtitle">Tap a letter to meet the animal!</p>
+  <div class="letter-grid" id="letterGrid"></div>
+</div>
+
+<!-- ===================== DETAIL PAGE ===================== -->
+<div class="detail-page hidden" id="detailPage">
+  <div class="back-hint">← tap anywhere to go back →</div>
+
+  <button class="detail-nav left" id="detailPrev" aria-label="Previous letter">◀</button>
+  <button class="detail-nav right" id="detailNext" aria-label="Next letter">▶</button>
+
+  <div class="detail-letter" id="detailLetter">A</div>
+
+  <div class="detail-animal-area">
+    <div class="detail-image-wrapper" id="detailImageWrapper">
+      <div class="spinner" id="detailSpinner" style="display:none;"></div>
+      <img id="detailImage" src="" alt="" style="display:none;">
+      <div class="detail-fallback" id="detailFallback" style="display:none;"></div>
+    </div>
+    <div class="detail-animal-name" id="detailAnimalName"></div>
+  </div>
+
+  <div class="reveal-hint hidden" id="revealHint"></div>
+</div>
+
+<script>
+  // ============================================================
+  // CONFIGURATION
+  // ============================================================
+
+  // Unsplash API key — replace with your own access key
+  const UNSPLASH_ACCESS_KEY = 'YOUR_UNSPLASH_ACCESS_KEY';
+
+  // ============================================================
+  // DATA
+  // ============================================================
+
+  const ANIMALS = {
+    A:'Alligator', B:'Bear',    C:'Cat',      D:'Dog',
+    E:'Elephant',  F:'Frog',    G:'Giraffe',  H:'Horse',
+    I:'Iguana',    J:'Jellyfish',K:'Kangaroo', L:'Lion',
+    M:'Monkey',    N:'Narwhal', O:'Owl',      P:'Penguin',
+    Q:'Quail',     R:'Rabbit',  S:'Snake',    T:'Tiger',
+    U:'Unicorn',   V:'Vulture', W:'Whale',    X:'Fox',
+    Y:'Yak',       Z:'Zebra'
+  };
+
+  const EMOJI_FALLBACKS = {
+    A:'🐊', B:'🐻', C:'🐱', D:'🐶',
+    E:'🐘', F:'🐸', G:'🦒', H:'🐴',
+    I:'🦎', J:'🪼', K:'🦘', L:'🦁',
+    M:'🐒', N:'🦄', O:'🦉', P:'🐧',
+    Q:'🐦', R:'🐰', S:'🐍', T:'🐯',
+    U:'🦄', V:'🦅', W:'🐋', X:'🦊',
+    Y:'🐂', Z:'🦓'
+  };
+
+  const PASTEL_COLORS = {
+    A:'#FFD6D6', B:'#D6E8FF', C:'#FFF3D6', D:'#D6FFD6',
+    E:'#E8D6FF', F:'#D6FFF0', G:'#FFE8D6', H:'#D6F0FF',
+    I:'#FFD6F0', J:'#D6FFE8', K:'#F0FFD6', L:'#FFD6E8',
+    M:'#D6D6FF', N:'#E8FFD6', O:'#FFE8E8', P:'#D6FFFF',
+    Q:'#F5D6FF', R:'#FFECD6', S:'#D6FFDA', T:'#FFD6C8',
+    U:'#E0D6FF', V:'#DAFFD6', W:'#D6ECFF', X:'#FFE0D6',
+    Y:'#FFFDD6', Z:'#D6E0FF'
+  };
+
+  const LETTER_SOUNDS = {
+    A:'ah',  B:'buh', C:'kuh', D:'duh',
+    E:'eh',  F:'fff', G:'guh', H:'huh',
+    I:'ih',  J:'juh', K:'kuh', L:'lll',
+    M:'mmm', N:'nnn', O:'awe', P:'puh',
+    Q:'kwuh',R:'rrr', S:'sss', T:'tuh',
+    U:'uh',  V:'vvv', W:'wuh', X:'ks',
+    Y:'yuh', Z:'zzz'
+  };
+
+  // ============================================================
+  // STATE
+  // ============================================================
+
+  const LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+  let currentIndex = 0;
+  let animalRevealed = false;
+  let reachedZ = false;
+  let imageCache = {};
+  let visitedLetters = new Set();
+
+  // ============================================================
+  // DOM REFERENCES
+  // ============================================================
+
+  const homePage       = document.getElementById('homePage');
+  const letterGrid     = document.getElementById('letterGrid');
+  const detailPage     = document.getElementById('detailPage');
+  const detailLetter   = document.getElementById('detailLetter');
+  const detailImageWrapper = document.getElementById('detailImageWrapper');
+  const detailImage    = document.getElementById('detailImage');
+  const detailFallback = document.getElementById('detailFallback');
+  const detailAnimalName = document.getElementById('detailAnimalName');
+  const detailSpinner  = document.getElementById('detailSpinner');
+  const detailPrev     = document.getElementById('detailPrev');
+  const detailNext     = document.getElementById('detailNext');
+  const revealHint     = document.getElementById('revealHint');
+
+  // ============================================================
+  // BUILD THE HOME PAGE GRID
+  // ============================================================
+
+  function buildGrid() {
+    letterGrid.innerHTML = '';
+    LETTERS.forEach((letter, i) => {
+      const tile = document.createElement('div');
+      tile.classList.add('letter-tile');
+      if (visitedLetters.has(letter)) tile.classList.add('visited');
+      tile.style.backgroundColor = PASTEL_COLORS[letter];
+      // Staggered entrance animation
+      tile.style.animationDelay = (i * 0.025) + 's';
+
+      tile.innerHTML = `
+        <span class="tile-emoji">${EMOJI_FALLBACKS[letter]}</span>
+        <span class="tile-letter">${letter}</span>
+        <span class="tile-animal">${ANIMALS[letter]}</span>
+      `;
+
+      tile.addEventListener('click', () => openDetail(i));
+      letterGrid.appendChild(tile);
+    });
+  }
+
+  // ============================================================
+  // OPEN DETAIL VIEW — Show a single letter page
+  // ============================================================
+
+  function openDetail(index) {
+    currentIndex = index;
+    animalRevealed = false;
+
+    // Switch pages
+    homePage.classList.add('hidden');
+    detailPage.classList.remove('hidden');
+    detailPage.classList.remove('opening');
+    void detailPage.offsetWidth;
+    detailPage.classList.add('opening');
+
+    // Update detail content and immediately reveal the animal
+    updateDetail();
+    revealAnimal();
+  }
+
+  // ============================================================
+  // UPDATE DETAIL — Refresh the detail view for current letter
+  // ============================================================
+
+  function updateDetail() {
+    const letter = LETTERS[currentIndex];
+
+    // Background color
+    detailPage.style.backgroundColor = PASTEL_COLORS[letter];
+
+    // Letter display
+    detailLetter.textContent = letter;
+    detailLetter.classList.remove('bounce');
+
+    // Nav buttons
+    detailPrev.disabled = currentIndex === 0;
+    detailNext.disabled = currentIndex === 25;
+
+    // Reset animal display
+    resetAnimalDisplay();
+
+    // Show reveal hint
+    revealHint.classList.remove('hidden');
+
+    // Reset revealed state
+    animalRevealed = false;
+  }
+
+  // ============================================================
+  // RESET ANIMAL DISPLAY
+  // ============================================================
+
+  function resetAnimalDisplay() {
+    detailImageWrapper.classList.remove('visible');
+    detailAnimalName.classList.remove('visible');
+    detailImage.style.display = 'none';
+    detailFallback.style.display = 'none';
+    detailSpinner.style.display = 'none';
+    detailImage.src = '';
+    detailAnimalName.textContent = '';
+  }
+
+  // ============================================================
+  // CLOSE DETAIL — Return to the home grid
+  // ============================================================
+
+  function closeDetail() {
+    // Stop any speech
+    if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+
+    detailPage.classList.add('hidden');
+    detailPage.classList.remove('opening');
+    homePage.classList.remove('hidden');
+
+    // Rebuild grid to show updated visited states
+    buildGrid();
+
+    // Scroll to make sure grid is visible
+    window.scrollTo(0, 0);
+  }
+
+  // ============================================================
+  // REVEAL ANIMAL — Triggered by tap on detail page
+  // ============================================================
+
+  function revealAnimal() {
+    if (animalRevealed) return;
+    animalRevealed = true;
+
+    const letter = LETTERS[currentIndex];
+    const animal = ANIMALS[letter];
+
+    // Mark as visited
+    visitedLetters.add(letter);
+
+    // Hide hint
+    revealHint.classList.add('hidden');
+
+    // Set animal name
+    detailAnimalName.textContent = `${letter} is for ${animal}!`;
+
+    // Bounce the letter
+    detailLetter.classList.remove('bounce');
+    void detailLetter.offsetWidth;
+    detailLetter.classList.add('bounce');
+
+    // Fetch & show image
+    fetchAnimalImage(letter, animal);
+
+    // Show name with delay
+    setTimeout(() => detailAnimalName.classList.add('visible'), 100);
+
+    // Speak
+    speak(letter, animal);
+
+    // Confetti on Z
+    if (letter === 'Z' && !reachedZ) {
+      reachedZ = true;
+      setTimeout(launchConfetti, 600);
+    }
+  }
+
+  // ============================================================
+  // IMAGE FETCHING — Unsplash with emoji fallback
+  // ============================================================
+
+  async function fetchAnimalImage(letter, animal) {
+    detailImageWrapper.classList.add('visible');
+    detailSpinner.style.display = 'block';
+
+    // Cache hit
+    if (imageCache[letter]) {
+      showImage(imageCache[letter], animal);
+      return;
+    }
+
+    try {
+      const query = encodeURIComponent(animal + ' animal');
+      const url = `https://api.unsplash.com/search/photos?query=${query}&per_page=1&orientation=squarish&client_id=${UNSPLASH_ACCESS_KEY}`;
+      const response = await fetch(url);
+      if (!response.ok) throw new Error('API error');
+      const data = await response.json();
+      if (data.results && data.results.length > 0) {
+        const imageUrl = data.results[0].urls.small;
+        imageCache[letter] = imageUrl;
+        showImage(imageUrl, animal);
+      } else {
+        throw new Error('No results');
+      }
+    } catch (err) {
+      console.log('Image fetch failed, using emoji:', err.message);
+      showFallbackEmoji(letter);
+    }
+  }
+
+  function showImage(url, animal) {
+    detailSpinner.style.display = 'none';
+    detailImage.onload = () => { detailImage.style.display = 'block'; };
+    detailImage.onerror = () => { showFallbackEmoji(LETTERS[currentIndex]); };
+    detailImage.alt = animal;
+    detailImage.src = url;
+  }
+
+  function showFallbackEmoji(letter) {
+    detailSpinner.style.display = 'none';
+    detailImage.style.display = 'none';
+    detailFallback.textContent = EMOJI_FALLBACKS[letter];
+    detailFallback.style.display = 'block';
+  }
+
+  // ============================================================
+  // WEB SPEECH API
+  // ============================================================
+
+  function speak(letter, animal) {
+    if (!('speechSynthesis' in window)) return;
+    window.speechSynthesis.cancel();
+    const phrase = `${letter}. ${LETTER_SOUNDS[letter]}. ${letter} is for ${animal}!`;
+    const utterance = new SpeechSynthesisUtterance(phrase);
+    utterance.rate = 0.85;
+    utterance.pitch = 1.1;
+    utterance.lang = 'en-US';
+    window.speechSynthesis.speak(utterance);
+  }
+
+  // ============================================================
+  // DETAIL NAV — Previous / Next on detail page
+  // ============================================================
+
+  function detailGoNext() {
+    if (currentIndex >= 25) return;
+    currentIndex++;
+    animalRevealed = false;
+    updateDetail();
+    revealAnimal();
+  }
+
+  function detailGoPrev() {
+    if (currentIndex <= 0) return;
+    currentIndex--;
+    animalRevealed = false;
+    updateDetail();
+    revealAnimal();
+  }
+
+  // ============================================================
+  // EVENT LISTENERS — Detail page
+  // ============================================================
+
+  // Nav arrow clicks (stop propagation so they don't trigger close/reveal)
+  detailPrev.addEventListener('click', (e) => {
+    e.stopPropagation();
+    detailGoPrev();
+  });
+
+  detailNext.addEventListener('click', (e) => {
+    e.stopPropagation();
+    detailGoNext();
+  });
+
+  // Tap on detail page: go back to home grid
+  detailPage.addEventListener('click', (e) => {
+    if (e.target.closest('.detail-nav')) return;
+    closeDetail();
+  });
+
+  // ============================================================
+  // TOUCH / SWIPE on detail page
+  // ============================================================
+
+  (function setupDetailSwipe() {
+    let startX = 0;
+    let startY = 0;
+    let startTime = 0;
+    let swiping = false;
+
+    detailPage.addEventListener('touchstart', (e) => {
+      if (e.target.closest('.detail-nav')) return;
+      startX = e.touches[0].clientX;
+      startY = e.touches[0].clientY;
+      startTime = Date.now();
+      swiping = false;
+    }, { passive: true });
+
+    detailPage.addEventListener('touchmove', (e) => {
+      if (!startX) return;
+      const dx = Math.abs(e.touches[0].clientX - startX);
+      const dy = Math.abs(e.touches[0].clientY - startY);
+      if (dx > 20 && dx > dy) swiping = true;
+    }, { passive: true });
+
+    detailPage.addEventListener('touchend', (e) => {
+      if (e.target.closest('.detail-nav')) return;
+      const endX = e.changedTouches[0].clientX;
+      const dx = endX - startX;
+      const elapsed = Date.now() - startTime;
+
+      if (swiping && Math.abs(dx) > 50 && elapsed < 500) {
+        // Swipe left = next, swipe right = prev
+        if (dx < 0) detailGoNext();
+        else detailGoPrev();
+        // Prevent the click handler from firing
+        e.preventDefault();
+      }
+      // Taps are handled by the click listener
+      startX = 0;
+      startY = 0;
+      swiping = false;
+    }, { passive: false });
+  })();
+
+  // ============================================================
+  // KEYBOARD NAV (works on detail page)
+  // ============================================================
+
+  document.addEventListener('keydown', (e) => {
+    if (detailPage.classList.contains('hidden')) return;
+
+    if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      detailGoPrev();
+    } else if (e.key === 'ArrowRight') {
+      e.preventDefault();
+      detailGoNext();
+    } else if (e.key === ' ' || e.key === 'Enter' || e.key === 'Escape') {
+      e.preventDefault();
+      closeDetail();
+    }
+    
+  });
+
+  // ============================================================
+  // CONFETTI — Triggered when reaching Z
+  // ============================================================
+
+  function launchConfetti() {
+    const colors = [
+      '#FF6B6B','#4ECDC4','#45B7D1','#96CEB4',
+      '#FFEAA7','#DDA0DD','#98D8C8','#F7DC6F',
+      '#BB8FCE','#85C1E9','#F0B27A','#82E0AA'
+    ];
+
+    for (let i = 0; i < 100; i++) {
+      const piece = document.createElement('div');
+      piece.classList.add('confetti-piece');
+      const color = colors[Math.floor(Math.random() * colors.length)];
+      const left = Math.random() * 100;
+      const size = Math.random() * 8 + 6;
+      const duration = Math.random() * 2 + 2;
+      const delay = Math.random() * 1.5;
+      piece.style.cssText = `
+        left:${left}%;
+        width:${size}px;
+        height:${size}px;
+        background:${color};
+        animation-duration:${duration}s;
+        animation-delay:${delay}s;
+        border-radius:${Math.random() > 0.5 ? '50%' : '2px'};
+      `;
+      document.body.appendChild(piece);
+      setTimeout(() => piece.remove(), (duration + delay) * 1000 + 100);
+    }
+  }
+
+  // ============================================================
+  // INIT
+  // ============================================================
+
+  buildGrid();
+</script>
+
+</body>
+</html>
