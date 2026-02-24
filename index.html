@@ -6,11 +6,7 @@
   <title>Alphabet Animal Parade</title>
   <style>
     /* ===== RESET & BASE ===== */
-    *, *::before, *::after {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
     html, body {
       height: 100%;
@@ -19,7 +15,11 @@
       -webkit-user-select: none;
       user-select: none;
       background: #f0f0f5;
+      overflow-x: hidden;
     }
+
+    /* ===== PAGE TRANSITIONS ===== */
+    .page.hidden { display: none; }
 
     /* ===== HOME PAGE ===== */
     .home-page {
@@ -27,283 +27,676 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 1.5rem 1rem 2rem;
-      transition: opacity 0.3s ease;
+      padding: 1rem 1rem 2rem;
+      position: relative;
     }
 
-    .home-page.hidden {
-      display: none;
-    }
+    .home-header { text-align: center; margin-bottom: 0.5rem; position: relative; z-index: 2; }
 
     .home-title {
-      font-size: clamp(1.4rem, 4vw, 2.2rem);
+      font-size: clamp(1.3rem, 3.5vw, 2rem);
       font-weight: 800;
       color: #333;
-      margin-bottom: 0.25rem;
-      text-align: center;
       letter-spacing: -0.02em;
     }
 
-    .home-subtitle {
-      font-size: clamp(0.75rem, 2vw, 1rem);
-      color: #999;
-      margin-bottom: 1.5rem;
-      text-align: center;
+    /* ===== PROGRESS BAR ===== */
+    .progress-section {
+      width: 100%; max-width: 500px;
+      margin-bottom: 0.6rem; position: relative; z-index: 2;
+    }
+
+    .progress-label {
+      font-size: clamp(0.65rem, 1.8vw, 0.85rem);
+      color: #888; margin-bottom: 4px;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+
+    .progress-bar-bg {
+      width: 100%; height: 8px;
+      background: rgba(0,0,0,0.06); border-radius: 10px; overflow: hidden;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #FF6B6B, #FFEAA7, #4ECDC4, #45B7D1, #BB8FCE);
+      border-radius: 10px;
+      transition: width 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+      background-size: 200% 100%;
+      animation: shimmer 3s linear infinite;
+    }
+
+    @keyframes shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    /* ===== TAB BAR ===== */
+    .tab-bar {
+      display: flex; gap: 4px;
+      background: rgba(0,0,0,0.05); border-radius: 12px; padding: 3px;
+      margin-bottom: 0.75rem; position: relative; z-index: 2;
+    }
+
+    .tab-btn {
+      padding: 6px 14px; border: none; background: transparent;
+      border-radius: 10px; font-size: clamp(0.65rem, 1.8vw, 0.85rem);
+      font-weight: 700; color: #999; cursor: pointer; transition: all 0.25s ease;
+    }
+
+    .tab-btn.active {
+      background: white; color: #333;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
     }
 
     /* ===== LETTER GRID ===== */
     .letter-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: clamp(8px, 2vw, 14px);
-      width: 100%;
-      max-width: 500px;
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      gap: clamp(6px, 1.5vw, 12px);
+      width: 100%; max-width: 500px; position: relative; z-index: 2;
     }
 
     .letter-tile {
-      aspect-ratio: 1;
-      border-radius: clamp(12px, 3vw, 20px);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-      position: relative;
-      overflow: hidden;
+      aspect-ratio: 1; border-radius: clamp(10px, 2.5vw, 18px);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      cursor: pointer; transition: transform 0.2s ease, box-shadow 0.2s ease;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06); position: relative; overflow: hidden;
+      animation: tile-pop 0.4s cubic-bezier(0.34,1.56,0.64,1) backwards;
     }
 
-    .letter-tile:hover {
-      transform: scale(1.06);
-      box-shadow: 0 6px 20px rgba(0,0,0,0.1);
-    }
-
-    .letter-tile:active {
-      transform: scale(0.96);
-    }
+    .letter-tile:hover { transform: scale(1.06); box-shadow: 0 6px 20px rgba(0,0,0,0.1); }
+    .letter-tile:active { transform: scale(0.96); }
 
     .letter-tile .tile-letter {
-      font-size: clamp(1.8rem, 6vw, 3rem);
-      font-weight: 900;
-      color: rgba(0,0,0,0.2);
-      line-height: 1;
+      font-size: clamp(1.5rem, 5vw, 2.5rem); font-weight: 900;
+      color: rgba(0,0,0,0.18); line-height: 1;
     }
 
     .letter-tile .tile-animal {
-      font-size: clamp(0.5rem, 1.5vw, 0.7rem);
-      font-weight: 600;
-      color: rgba(0,0,0,0.25);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      margin-top: 2px;
+      font-size: clamp(0.4rem, 1.2vw, 0.6rem); font-weight: 600;
+      color: rgba(0,0,0,0.2); text-transform: uppercase;
+      letter-spacing: 0.04em; margin-top: 1px;
     }
 
     .letter-tile .tile-emoji {
-      position: absolute;
-      top: 4px;
-      right: 6px;
-      font-size: clamp(0.7rem, 2vw, 1rem);
-      opacity: 0.5;
+      position: absolute; top: 3px; right: 4px;
+      font-size: clamp(0.6rem, 1.8vw, 0.9rem); opacity: 0.4;
     }
 
-    /* Visited indicator */
     .letter-tile.visited::after {
-      content: '✓';
-      position: absolute;
-      top: 4px;
-      left: 6px;
+      content: '⭐'; position: absolute; top: 2px; left: 3px;
+      font-size: clamp(0.45rem, 1.2vw, 0.6rem);
+    }
+
+    @keyframes tile-pop {
+      0% { opacity: 0; transform: scale(0.5); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+
+    /* ===== FLOATING BUBBLES ===== */
+    .bubbles-container {
+      position: fixed; inset: 0; pointer-events: none;
+      z-index: 0; overflow: hidden;
+    }
+
+    .bubble {
+      position: absolute; border-radius: 50%; opacity: 0.12;
+      animation: float-up linear infinite;
+    }
+
+    @keyframes float-up {
+      0% { transform: translateY(100vh) rotate(0deg) scale(0.5); opacity: 0; }
+      10% { opacity: 0.12; }
+      90% { opacity: 0.12; }
+      100% { transform: translateY(-100px) rotate(360deg) scale(1); opacity: 0; }
+    }
+
+    /* ===== SKETCH SECTION ===== */
+    .sketch-section {
+      width: 100%; max-width: 500px;
+      display: flex; flex-direction: column; align-items: center;
+      position: relative; z-index: 2;
+    }
+
+    .sketch-section.hidden { display: none; }
+
+    .sketch-header { text-align: center; margin-bottom: 0.4rem; }
+
+    .sketch-prompt {
+      font-size: clamp(0.85rem, 2.5vw, 1.1rem); font-weight: 700; color: #555;
+    }
+
+    .sketch-prompt .sketch-letter-highlight {
+      font-size: clamp(1.2rem, 3.5vw, 1.6rem); font-weight: 900; color: #FF6B6B;
+    }
+
+    /* Sketch progress counter */
+    .sketch-progress-info {
+      display: flex; align-items: center; gap: 12px;
+      margin-bottom: 0.5rem; flex-wrap: wrap; justify-content: center;
+    }
+
+    .sketch-progress-badge {
+      background: rgba(0,0,0,0.05); border-radius: 20px;
+      padding: 4px 14px; font-size: clamp(0.65rem, 1.7vw, 0.8rem);
+      font-weight: 700; color: #888;
+    }
+
+    .sketch-progress-badge .accent { color: #FF6B6B; }
+
+    /* Case toggle */
+    .sketch-case-toggle {
+      display: flex; background: rgba(0,0,0,0.05);
+      border-radius: 10px; padding: 2px; gap: 2px; margin-bottom: 0.5rem;
+    }
+
+    .sketch-case-btn {
+      padding: 5px 16px; border: none; background: transparent;
+      border-radius: 8px; font-size: clamp(0.7rem, 1.8vw, 0.85rem);
+      font-weight: 700; color: #aaa; cursor: pointer; transition: all 0.2s;
+    }
+
+    .sketch-case-btn.active {
+      background: white; color: #555;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+    }
+
+    /* Canvas wrapper */
+    .sketch-canvas-wrapper {
+      position: relative;
+      width: min(85vw, 400px); height: min(85vw, 400px);
+      border-radius: 24px; overflow: hidden;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+      background: white; margin-bottom: 0.5rem;
+      touch-action: none;
+      transition: box-shadow 0.3s ease;
+    }
+
+    .sketch-canvas-wrapper.verified {
+      box-shadow: 0 4px 30px rgba(78, 205, 196, 0.4);
+    }
+
+    .sketch-canvas-wrapper.shake {
+      animation: canvas-shake 0.5s ease;
+    }
+
+    @keyframes canvas-shake {
+      0%, 100% { transform: translateX(0); }
+      20% { transform: translateX(-6px); }
+      40% { transform: translateX(6px); }
+      60% { transform: translateX(-3px); }
+      80% { transform: translateX(3px); }
+    }
+
+    /* Ghost letter guide behind the canvas */
+    .sketch-guide-letter {
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 900; color: rgba(0,0,0,0.06);
+      font-size: min(60vw, 280px); line-height: 1;
+      pointer-events: none; z-index: 1;
+      transition: color 0.3s ease;
+    }
+
+    .sketch-guide-letter.lowercase { font-size: min(55vw, 260px); }
+
+    .sketch-guide-letter.verified-glow { color: rgba(78, 205, 196, 0.15); }
+
+    /* The actual drawing canvas */
+    .sketch-canvas {
+      position: absolute; inset: 0; z-index: 2; cursor: crosshair;
+    }
+
+    /* ===== COVERAGE METER ===== */
+    .sketch-coverage-section {
+      width: min(85vw, 400px); margin-bottom: 0.5rem;
+    }
+
+    .sketch-coverage-label {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 3px;
+    }
+
+    .sketch-coverage-label-text {
+      font-size: clamp(0.6rem, 1.6vw, 0.75rem);
+      font-weight: 700; color: #aaa;
+    }
+
+    .sketch-coverage-pct {
+      font-size: clamp(0.7rem, 1.8vw, 0.85rem);
+      font-weight: 800; color: #ccc;
+      transition: color 0.3s ease;
+    }
+
+    .sketch-coverage-pct.good { color: #4ECDC4; }
+    .sketch-coverage-pct.great { color: #2ECC71; }
+
+    .sketch-coverage-track {
+      width: 100%; height: 10px;
+      background: rgba(0,0,0,0.06); border-radius: 10px;
+      overflow: hidden; position: relative;
+    }
+
+    .sketch-coverage-fill {
+      height: 100%; width: 0%;
+      border-radius: 10px;
+      transition: width 0.4s ease, background 0.4s ease;
+      background: #FF6B6B;
+    }
+
+    .sketch-coverage-fill.good { background: #FECA57; }
+    .sketch-coverage-fill.great { background: linear-gradient(90deg, #4ECDC4, #2ECC71); }
+
+    /* Threshold marker */
+    .sketch-coverage-threshold {
+      position: absolute; top: -2px; bottom: -2px;
+      width: 3px; background: rgba(0,0,0,0.15);
+      border-radius: 2px; z-index: 1;
+      /* positioned via JS */
+    }
+
+    .sketch-coverage-threshold::after {
+      content: '⭐';
+      position: absolute; top: -16px;
+      left: 50%; transform: translateX(-50%);
       font-size: 0.6rem;
-      color: rgba(0,0,0,0.2);
-      font-weight: 700;
+    }
+
+    /* Feedback message */
+    .sketch-feedback {
+      font-size: clamp(0.7rem, 2vw, 0.9rem);
+      font-weight: 700; color: #bbb;
+      margin-bottom: 0.5rem; text-align: center;
+      min-height: 1.3em;
+      transition: color 0.3s ease;
+    }
+
+    .sketch-feedback.encouraging { color: #F0932B; }
+    .sketch-feedback.almost { color: #FECA57; }
+    .sketch-feedback.success { color: #2ECC71; }
+
+    /* Toolbar */
+    .sketch-toolbar {
+      display: flex; align-items: center; gap: 8px;
+      flex-wrap: wrap; justify-content: center; margin-bottom: 0.5rem;
+    }
+
+    .sketch-color-btn {
+      width: 32px; height: 32px;
+      border: 3px solid transparent; border-radius: 50%;
+      cursor: pointer; transition: transform 0.2s, border-color 0.2s;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+
+    .sketch-color-btn:hover { transform: scale(1.15); }
+    .sketch-color-btn:active { transform: scale(0.95); }
+    .sketch-color-btn.active { border-color: #333; transform: scale(1.1); }
+
+    .sketch-tool-divider {
+      width: 1px; height: 24px;
+      background: rgba(0,0,0,0.08); margin: 0 2px;
+    }
+
+    .sketch-action-btn {
+      border: none; background: rgba(0,0,0,0.06);
+      border-radius: 12px; padding: 8px 14px;
+      font-size: clamp(0.65rem, 1.7vw, 0.8rem);
+      font-weight: 700; color: #777; cursor: pointer;
+      transition: background 0.2s, transform 0.2s; white-space: nowrap;
+    }
+
+    .sketch-action-btn:hover { background: rgba(0,0,0,0.1); }
+    .sketch-action-btn:active { transform: scale(0.95); }
+
+    .sketch-action-btn.skip {
+      background: rgba(0,0,0,0.04); color: #bbb;
+    }
+
+    /* Celebration overlay */
+    .sketch-celebration {
+      position: absolute; inset: 0;
+      background: rgba(255,255,255,0.88);
+      backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      z-index: 10; border-radius: 24px;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.4s ease;
+    }
+
+    .sketch-celebration.visible { opacity: 1; pointer-events: auto; }
+
+    .sketch-celebration .celeb-emoji { font-size: 3rem; margin-bottom: 0.3rem; }
+    .sketch-celebration .celeb-text {
+      font-size: clamp(1rem, 3vw, 1.3rem); font-weight: 800; color: #333;
+    }
+    .sketch-celebration .celeb-sub {
+      font-size: clamp(0.7rem, 2vw, 0.9rem); color: #999; margin-top: 0.2rem;
+    }
+    .sketch-celebration .celeb-score {
+      font-size: clamp(0.65rem, 1.8vw, 0.8rem);
+      color: #4ECDC4; font-weight: 800; margin-top: 0.3rem;
+    }
+
+    /* ===== QUIZ SECTION ===== */
+    .quiz-section {
+      width: 100%; max-width: 500px;
+      display: flex; flex-direction: column; align-items: center;
+      position: relative; z-index: 2;
+    }
+
+    .quiz-section.hidden { display: none; }
+
+    .quiz-score-bar {
+      display: flex; gap: 1rem; margin-bottom: 1rem;
+      font-size: clamp(0.75rem, 2vw, 1rem); font-weight: 700; color: #555;
+    }
+
+    .quiz-prompt { text-align: center; margin-bottom: 1.5rem; }
+
+    .quiz-emoji { font-size: clamp(4rem, 14vw, 7rem); line-height: 1.1; margin-bottom: 0.5rem; }
+
+    .quiz-question {
+      font-size: clamp(1rem, 3vw, 1.5rem); font-weight: 700; color: #444;
+    }
+
+    .quiz-question .animal-name { color: #FF6B6B; }
+
+    .quiz-choices {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: clamp(8px, 2vw, 14px);
+      width: 100%; max-width: 320px; margin-bottom: 1rem;
+    }
+
+    .quiz-choice {
+      aspect-ratio: 1.2; border: none; border-radius: 16px;
+      font-size: clamp(2rem, 7vw, 3.5rem); font-weight: 900;
+      cursor: pointer; transition: transform 0.2s ease, box-shadow 0.2s ease;
+      box-shadow: 0 3px 12px rgba(0,0,0,0.08);
+      color: rgba(0,0,0,0.25);
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    .quiz-choice:hover { transform: scale(1.05); }
+    .quiz-choice:active { transform: scale(0.95); }
+
+    .quiz-choice.correct {
+      background: #82E0AA !important; color: white !important;
+      animation: quiz-correct 0.5s ease;
+    }
+
+    .quiz-choice.wrong { animation: quiz-wrong 0.4s ease; }
+
+    @keyframes quiz-correct {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.15); }
+    }
+
+    @keyframes quiz-wrong {
+      0%, 100% { transform: translateX(0); }
+      20% { transform: translateX(-8px); }
+      40% { transform: translateX(8px); }
+      60% { transform: translateX(-4px); }
+      80% { transform: translateX(4px); }
+    }
+
+    .quiz-skip {
+      border: none; background: rgba(0,0,0,0.05);
+      padding: 8px 20px; border-radius: 20px;
+      font-size: 0.8rem; color: #aaa; cursor: pointer; font-weight: 600;
+    }
+
+    .quiz-complete { text-align: center; padding: 2rem; }
+    .quiz-complete .trophy { font-size: 4rem; margin-bottom: 0.5rem; }
+    .quiz-complete h2 { font-size: 1.5rem; color: #333; margin-bottom: 0.5rem; }
+    .quiz-complete p { color: #777; margin-bottom: 1rem; }
+
+    .quiz-complete button {
+      border: none;
+      background: linear-gradient(135deg, #FF6B6B, #FFEAA7);
+      color: white; font-weight: 800;
+      padding: 12px 28px; border-radius: 25px;
+      font-size: 1rem; cursor: pointer;
+      box-shadow: 0 4px 15px rgba(255,107,107,0.3);
     }
 
     /* ===== DETAIL PAGE ===== */
     .detail-page {
-      position: fixed;
-      inset: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      z-index: 100;
-      cursor: pointer;
+      position: fixed; inset: 0;
+      display: flex; flex-direction: column;
+      z-index: 100; overflow: hidden;
       transition: background-color 0.4s ease;
-      overflow: hidden;
     }
 
-    .detail-page.hidden {
-      display: none;
-    }
-
-    /* Back hint at top */
-    .back-hint {
-      position: absolute;
-      top: 1.2rem;
-      left: 0;
-      right: 0;
-      text-align: center;
-      font-size: clamp(0.7rem, 2vw, 0.9rem);
-      color: rgba(0,0,0,0.2);
-      z-index: 10;
-      pointer-events: none;
-    }
-
-    /* Detail letter */
-    .detail-letter {
-      font-size: clamp(7rem, 28vw, 14rem);
-      font-weight: 900;
-      color: rgba(0,0,0,0.1);
-      line-height: 1;
-      transition: transform 0.3s ease;
-    }
-
-    .detail-letter.bounce {
-      animation: bounce 0.6s ease;
-    }
-
-    /* Animal area */
-    .detail-animal-area {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 0.75rem;
-      min-height: 260px;
-      justify-content: center;
-      margin-top: 0.5rem;
-    }
-
-    .detail-image-wrapper {
-      width: clamp(160px, 45vw, 280px);
-      height: clamp(160px, 45vw, 280px);
-      border-radius: 24px;
-      overflow: hidden;
-      background: rgba(255,255,255,0.45);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-      box-shadow: 0 8px 32px rgba(0,0,0,0.08);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      opacity: 0;
-      transform: scale(0.4);
-      transition: opacity 0.5s cubic-bezier(0.34,1.56,0.64,1),
-                  transform 0.5s cubic-bezier(0.34,1.56,0.64,1);
-    }
-
-    .detail-image-wrapper.visible {
-      opacity: 1;
-      transform: scale(1);
-    }
-
-    .detail-image-wrapper img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-
-    .detail-fallback {
-      font-size: clamp(4rem, 14vw, 7rem);
-      text-align: center;
-    }
-
-    .detail-animal-name {
-      font-size: clamp(1.3rem, 4.5vw, 2.2rem);
-      font-weight: 800;
-      color: rgba(0,0,0,0.5);
-      opacity: 0;
-      transform: translateY(12px);
-      transition: opacity 0.4s ease 0.2s, transform 0.4s ease 0.2s;
-      text-align: center;
-    }
-
-    .detail-animal-name.visible {
-      opacity: 1;
-      transform: translateY(0);
-    }
-
-    /* Tap to reveal hint */
-    .reveal-hint {
-      position: absolute;
-      bottom: 2rem;
-      text-align: center;
-      font-size: clamp(0.7rem, 2vw, 0.9rem);
-      color: rgba(0,0,0,0.2);
-      z-index: 10;
-      pointer-events: none;
-      transition: opacity 0.3s ease;
-    }
-
-    .reveal-hint.hidden {
-      opacity: 0;
-    }
-
-    /* Nav arrows on detail page */
-    .detail-nav {
-      position: absolute;
-      top: 50%;
-      transform: translateY(-50%);
-      width: 44px;
-      height: 44px;
-      border: none;
-      background: rgba(255,255,255,0.35);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      border-radius: 50%;
-      font-size: 1.2rem;
-      color: rgba(0,0,0,0.3);
-      cursor: pointer;
-      z-index: 20;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: background 0.2s ease, transform 0.2s ease;
-    }
-
-    .detail-nav:hover {
-      background: rgba(255,255,255,0.55);
-      transform: translateY(-50%) scale(1.1);
-    }
-
-    .detail-nav:active {
-      transform: translateY(-50%) scale(0.95);
-    }
-
-    .detail-nav.left { left: 0.75rem; }
-    .detail-nav.right { right: 0.75rem; }
-
-    .detail-nav:disabled {
-      opacity: 0.15;
-      pointer-events: none;
-    }
-
-    /* ===== OPENING ANIMATION ===== */
-    @keyframes detail-open {
-      0% { opacity: 0; transform: scale(0.85); }
-      100% { opacity: 1; transform: scale(1); }
-    }
+    .detail-page.hidden { display: none; }
 
     .detail-page.opening {
       animation: detail-open 0.35s cubic-bezier(0.34,1.56,0.64,1) forwards;
     }
 
-    /* ===== ANIMATIONS ===== */
+    @keyframes detail-open {
+      0% { opacity: 0; transform: scale(0.85); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+
+    /* Habitat scene background */
+    .habitat-scene { position: absolute; inset: 0; z-index: 0; overflow: hidden; }
+
+    .habitat-scene .scene-sky {
+      position: absolute; top: 0; left: 0; right: 0; height: 55%;
+    }
+
+    .habitat-scene .scene-ground {
+      position: absolute; bottom: 0; left: 0; right: 0; height: 50%;
+    }
+
+    .scene-elements {
+      position: absolute; inset: 0; pointer-events: none; z-index: 1;
+    }
+
+    .scene-element {
+      position: absolute; font-size: clamp(1.2rem, 4vw, 2.5rem);
+      opacity: 0.25; animation: scene-sway 4s ease-in-out infinite alternate;
+    }
+
+    @keyframes scene-sway {
+      0% { transform: translateX(0) rotate(-2deg); }
+      100% { transform: translateX(5px) rotate(2deg); }
+    }
+
+    /* Detail top bar */
+    .detail-top-bar {
+      width: 100%; display: flex; align-items: center;
+      justify-content: space-between;
+      padding: 0.8rem 1rem; position: relative; z-index: 20;
+    }
+
+    .detail-back-btn {
+      border: none; background: rgba(255,255,255,0.35);
+      backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+      border-radius: 12px; padding: 8px 14px;
+      font-size: 0.8rem; font-weight: 700;
+      color: rgba(0,0,0,0.35); cursor: pointer;
+      transition: background 0.2s, transform 0.2s;
+    }
+
+    .detail-back-btn:hover { background: rgba(255,255,255,0.55); }
+    .detail-back-btn:active { transform: scale(0.95); }
+
+    .detail-nav-group { display: flex; gap: 6px; }
+
+    .detail-nav {
+      width: 40px; height: 40px; border: none;
+      background: rgba(255,255,255,0.35);
+      backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+      border-radius: 50%; font-size: 1rem;
+      color: rgba(0,0,0,0.3); cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.2s, transform 0.2s;
+    }
+
+    .detail-nav:hover { background: rgba(255,255,255,0.55); transform: scale(1.1); }
+    .detail-nav:active { transform: scale(0.95); }
+    .detail-nav:disabled { opacity: 0.15; pointer-events: none; }
+
+    /* Detail content area */
+    .detail-content {
+      flex: 1; display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: 0 1.5rem 1.5rem; gap: 0.35rem;
+      width: 100%; max-width: 500px; margin: 0 auto;
+      cursor: pointer; position: relative; z-index: 10;
+    }
+
+    .detail-letters { text-align: center; line-height: 1; }
+
+    .detail-upper {
+      font-size: clamp(4.5rem, 18vw, 9rem); font-weight: 900;
+      color: rgba(0,0,0,0.1);
+    }
+
+    .detail-lower {
+      font-size: clamp(2.2rem, 9vw, 4.5rem); font-weight: 700;
+      color: rgba(0,0,0,0.07); margin-top: -0.3em;
+    }
+
+    .detail-letters.bounce { animation: bounce 0.6s ease; }
+
     @keyframes bounce {
       0%, 100% { transform: translateY(0); }
-      30% { transform: translateY(-25px); }
-      50% { transform: translateY(-12px); }
-      70% { transform: translateY(-6px); }
+      30% { transform: translateY(-20px); }
+      50% { transform: translateY(-10px); }
+      70% { transform: translateY(-5px); }
+    }
+
+    .detail-emoji-wrapper {
+      width: clamp(100px, 30vw, 160px); height: clamp(100px, 30vw, 160px);
+      border-radius: 50%; overflow: hidden;
+      background: rgba(255,255,255,0.35);
+      backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+      box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; transform: scale(0.4);
+      transition: opacity 0.5s cubic-bezier(0.34,1.56,0.64,1),
+                  transform 0.5s cubic-bezier(0.34,1.56,0.64,1);
+    }
+
+    .detail-emoji-wrapper.visible { opacity: 1; transform: scale(1); }
+
+    .detail-emoji-display { font-size: clamp(3rem, 12vw, 5.5rem); line-height: 1; }
+
+    .detail-animal-name {
+      font-size: clamp(1.1rem, 3.5vw, 1.8rem); font-weight: 800;
+      color: rgba(0,0,0,0.5); opacity: 0; transform: translateY(10px);
+      transition: opacity 0.4s ease 0.15s, transform 0.4s ease 0.15s;
+      text-align: center;
+    }
+
+    .detail-animal-name.visible { opacity: 1; transform: translateY(0); }
+
+    .detail-phonics {
+      font-size: clamp(0.7rem, 2vw, 0.95rem); color: rgba(0,0,0,0.25);
+      font-weight: 600; opacity: 0; transition: opacity 0.4s ease 0.25s;
+    }
+
+    .detail-phonics.visible { opacity: 1; }
+
+    .detail-fact {
+      background: rgba(255,255,255,0.5);
+      backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+      border-radius: 16px; padding: 10px 16px;
+      max-width: 340px; text-align: center;
+      font-size: clamp(0.7rem, 2vw, 0.9rem);
+      color: rgba(0,0,0,0.45); font-weight: 600; line-height: 1.4;
+      opacity: 0; transform: translateY(10px);
+      transition: opacity 0.4s ease 0.3s, transform 0.4s ease 0.3s;
+      position: relative;
+    }
+
+    .detail-fact.visible { opacity: 1; transform: translateY(0); }
+    .detail-fact::before {
+      content: '💡'; position: absolute; top: -10px;
+      left: 50%; transform: translateX(-50%); font-size: 0.9rem;
+    }
+
+    .detail-habitat-card {
+      background: rgba(255,255,255,0.45);
+      backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+      border-radius: 16px; padding: 10px 16px;
+      max-width: 340px; width: 100%;
+      opacity: 0; transform: translateY(10px);
+      transition: opacity 0.4s ease 0.35s, transform 0.4s ease 0.35s;
+    }
+
+    .detail-habitat-card.visible { opacity: 1; transform: translateY(0); }
+
+    .habitat-card-title {
+      font-size: clamp(0.6rem, 1.5vw, 0.72rem); font-weight: 800;
+      text-transform: uppercase; letter-spacing: 0.08em;
+      color: rgba(0,0,0,0.2); margin-bottom: 4px;
+    }
+
+    .habitat-card-body { display: flex; align-items: center; gap: 10px; }
+    .habitat-card-icon { font-size: 1.8rem; }
+    .habitat-card-info { flex: 1; }
+
+    .habitat-card-name {
+      font-size: clamp(0.8rem, 2vw, 1rem); font-weight: 800;
+      color: rgba(0,0,0,0.5);
+    }
+
+    .habitat-card-region {
+      font-size: clamp(0.55rem, 1.4vw, 0.72rem); font-weight: 600;
+      color: rgba(0,0,0,0.25);
+    }
+
+    .habitat-card-desc {
+      font-size: clamp(0.6rem, 1.5vw, 0.75rem); color: rgba(0,0,0,0.3);
+      font-weight: 600; line-height: 1.3; margin-top: 4px;
+    }
+
+    .detail-actions {
+      display: flex; gap: 8px; margin-top: 0.2rem;
+      opacity: 0; transition: opacity 0.4s ease 0.4s;
+      flex-wrap: wrap; justify-content: center;
+    }
+
+    .detail-actions.visible { opacity: 1; }
+
+    .action-btn {
+      border: none; background: rgba(255,255,255,0.45);
+      backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+      border-radius: 14px; padding: 10px 14px;
+      font-size: clamp(0.6rem, 1.6vw, 0.8rem); font-weight: 700;
+      color: rgba(0,0,0,0.4); cursor: pointer;
+      transition: background 0.2s, transform 0.2s; white-space: nowrap;
+    }
+
+    .action-btn:hover { background: rgba(255,255,255,0.65); }
+    .action-btn:active { transform: scale(0.95); }
+
+    .back-hint {
+      font-size: clamp(0.55rem, 1.5vw, 0.75rem);
+      color: rgba(0,0,0,0.15); margin-top: 0.4rem; pointer-events: none;
+    }
+
+    /* ===== STAR BURST ===== */
+    .star-burst {
+      position: fixed; pointer-events: none; z-index: 300;
+      font-size: 1.5rem;
+      animation: star-fly 0.8s cubic-bezier(0.34,1.56,0.64,1) forwards;
+    }
+
+    @keyframes star-fly {
+      0% { transform: scale(0) rotate(0deg); opacity: 1; }
+      50% { transform: scale(1.5) rotate(180deg); opacity: 1; }
+      100% { transform: scale(0.5) rotate(360deg) translateY(-60px); opacity: 0; }
     }
 
     /* ===== CONFETTI ===== */
     .confetti-piece {
-      position: fixed;
-      top: -10px;
-      width: 10px;
-      height: 10px;
-      border-radius: 2px;
-      z-index: 200;
-      pointer-events: none;
+      position: fixed; top: -10px; width: 10px; height: 10px;
+      border-radius: 2px; z-index: 200; pointer-events: none;
       animation: confetti-fall linear forwards;
     }
 
@@ -312,519 +705,1515 @@
       100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
     }
 
-    /* ===== SPINNER ===== */
-    .spinner {
-      width: 36px;
-      height: 36px;
-      border: 4px solid rgba(0,0,0,0.08);
-      border-top-color: rgba(0,0,0,0.25);
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
+    /* ===== COMPLETION MODAL ===== */
+    .completion-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.4);
+      z-index: 500; display: flex; align-items: center; justify-content: center;
+      opacity: 0; transition: opacity 0.4s ease;
     }
 
-    @keyframes spin {
-      to { transform: rotate(360deg); }
+    .completion-overlay.visible { opacity: 1; }
+    .completion-overlay.hidden { display: none; }
+
+    .completion-modal {
+      background: white; border-radius: 28px;
+      padding: 2rem 1.5rem; text-align: center;
+      max-width: 340px; width: 90%;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+      transform: scale(0.8);
+      transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1);
+    }
+
+    .completion-overlay.visible .completion-modal { transform: scale(1); }
+    .completion-modal .trophy { font-size: 4rem; }
+    .completion-modal h2 { font-size: 1.4rem; color: #333; margin: 0.5rem 0 0.3rem; }
+    .completion-modal p { font-size: 0.9rem; color: #888; margin-bottom: 1rem; }
+
+    .completion-modal button {
+      border: none;
+      background: linear-gradient(135deg, #FF6B6B, #FFEAA7, #4ECDC4);
+      background-size: 200% 100%;
+      animation: shimmer 3s linear infinite;
+      color: white; font-weight: 800;
+      padding: 12px 28px; border-radius: 25px;
+      font-size: 1rem; cursor: pointer;
+      box-shadow: 0 4px 15px rgba(255,107,107,0.3);
     }
 
     /* ===== RESPONSIVE ===== */
-    @media (min-width: 500px) {
-      .letter-grid {
-        grid-template-columns: repeat(5, 1fr);
-      }
-    }
-
+    @media (min-width: 500px) { .letter-grid { grid-template-columns: repeat(5, 1fr); } }
     @media (min-width: 700px) {
-      .letter-grid {
-        grid-template-columns: repeat(6, 1fr);
-        max-width: 650px;
-      }
-      .detail-nav {
-        width: 56px;
-        height: 56px;
-        font-size: 1.4rem;
-      }
-      .detail-nav.left { left: 2rem; }
-      .detail-nav.right { right: 2rem; }
+      .letter-grid { grid-template-columns: repeat(6, 1fr); max-width: 650px; }
+      .detail-nav { width: 48px; height: 48px; font-size: 1.2rem; }
+    }
+    @media (min-width: 1024px) { .letter-grid { grid-template-columns: repeat(7, 1fr); max-width: 780px; } }
+
+    @media (max-height: 650px) {
+      .detail-upper { font-size: 3.5rem; }
+      .detail-lower { font-size: 1.8rem; }
+      .detail-emoji-wrapper { width: 80px; height: 80px; }
+      .detail-emoji-display { font-size: 2.5rem; }
+      .detail-fact { padding: 6px 12px; }
+      .detail-habitat-card { padding: 6px 12px; }
     }
 
-    @media (min-width: 1024px) {
-      .letter-grid {
-        grid-template-columns: repeat(7, 1fr);
-        max-width: 780px;
-      }
-    }
-
-    @media (max-height: 550px) {
-      .detail-letter { font-size: 5rem; }
-      .detail-image-wrapper { width: 130px; height: 130px; }
-      .detail-animal-area { min-height: 170px; gap: 0.4rem; }
-    }
-
-    /* ===== TILE ENTRANCE ANIMATION ===== */
-    @keyframes tile-pop {
-      0% { opacity: 0; transform: scale(0.5); }
-      100% { opacity: 1; transform: scale(1); }
-    }
-
-    .letter-tile {
-      animation: tile-pop 0.4s cubic-bezier(0.34,1.56,0.64,1) backwards;
+    @media (max-height: 500px) {
+      .detail-letters { display: flex; align-items: baseline; gap: 0.3rem; }
+      .detail-lower { margin-top: 0; }
     }
   </style>
 </head>
 <body>
 
-<!-- ===================== HOME PAGE ===================== -->
-<div class="home-page" id="homePage">
-  <h1 class="home-title">🦁 Alphabet Animal Parade</h1>
-  <p class="home-subtitle">Tap a letter to meet the animal!</p>
-  <div class="letter-grid" id="letterGrid"></div>
-</div>
+<!-- ===== FLOATING BUBBLES ===== -->
+<div class="bubbles-container" id="bubblesContainer"></div>
 
-<!-- ===================== DETAIL PAGE ===================== -->
-<div class="detail-page hidden" id="detailPage">
-  <div class="back-hint">← tap anywhere to go back →</div>
-
-  <button class="detail-nav left" id="detailPrev" aria-label="Previous letter">◀</button>
-  <button class="detail-nav right" id="detailNext" aria-label="Next letter">▶</button>
-
-  <div class="detail-letter" id="detailLetter">A</div>
-
-  <div class="detail-animal-area">
-    <div class="detail-image-wrapper" id="detailImageWrapper">
-      <div class="spinner" id="detailSpinner" style="display:none;"></div>
-      <img id="detailImage" src="" alt="" style="display:none;">
-      <div class="detail-fallback" id="detailFallback" style="display:none;"></div>
-    </div>
-    <div class="detail-animal-name" id="detailAnimalName"></div>
+<!-- ===== HOME PAGE ===== -->
+<div class="home-page page" id="homePage">
+  <div class="home-header">
+    <h1 class="home-title">🦁 Alphabet Animal Parade</h1>
   </div>
 
-  <div class="reveal-hint hidden" id="revealHint"></div>
+  <!-- Progress -->
+  <div class="progress-section">
+    <div class="progress-label">
+      <span id="progressText">⭐ 0 / 26 Letters Explored</span>
+      <span id="progressPercent">0%</span>
+    </div>
+    <div class="progress-bar-bg">
+      <div class="progress-bar-fill" id="progressFill" style="width: 0%"></div>
+    </div>
+  </div>
+
+  <!-- Tab bar -->
+  <div class="tab-bar">
+    <button class="tab-btn active" id="tabLetters" onclick="switchTab('letters')">🔤 Letters</button>
+    <button class="tab-btn" id="tabSketch" onclick="switchTab('sketch')">✏️ Sketch</button>
+    <button class="tab-btn" id="tabQuiz" onclick="switchTab('quiz')">🎮 Quiz</button>
+  </div>
+
+  <!-- Letter Grid -->
+  <div class="letter-grid" id="letterGrid"></div>
+
+  <!-- ===== SKETCH SECTION ===== -->
+  <div class="sketch-section hidden" id="sketchSection">
+    <div class="sketch-header">
+      <div class="sketch-prompt">Trace the letter <span class="sketch-letter-highlight" id="sketchLetterLabel">A</span> with your finger!</div>
+    </div>
+
+    <!-- Progress + stats -->
+    <div class="sketch-progress-info">
+      <span class="sketch-progress-badge">⭐ <span class="accent" id="sketchDoneCount">0</span> / 26 traced</span>
+      <span class="sketch-progress-badge" id="sketchCurrentBadge">Letter: <span class="accent" id="sketchCurrentDisplay">A</span></span>
+    </div>
+
+    <!-- Upper / Lower case toggle -->
+    <div class="sketch-case-toggle">
+      <button class="sketch-case-btn active" id="sketchUpperBtn" onclick="setSketchCase('upper')">ABC</button>
+      <button class="sketch-case-btn" id="sketchLowerBtn" onclick="setSketchCase('lower')">abc</button>
+    </div>
+
+    <!-- Canvas with ghost letter -->
+    <div class="sketch-canvas-wrapper" id="sketchCanvasWrapper">
+      <div class="sketch-guide-letter" id="sketchGuideLetter">A</div>
+      <canvas class="sketch-canvas" id="sketchCanvas"></canvas>
+
+      <!-- Celebration overlay -->
+      <div class="sketch-celebration" id="sketchCelebration">
+        <div class="celeb-emoji">🌟</div>
+        <div class="celeb-text">Great job!</div>
+        <div class="celeb-sub">You traced the letter!</div>
+        <div class="celeb-score"></div>
+      </div>
+    </div>
+
+    <!-- Coverage meter -->
+    <div class="sketch-coverage-section">
+      <div class="sketch-coverage-label">
+        <span class="sketch-coverage-label-text">Tracing accuracy</span>
+        <span class="sketch-coverage-pct" id="coveragePct">0%</span>
+      </div>
+      <div class="sketch-coverage-track">
+        <div class="sketch-coverage-fill" id="coverageFill"></div>
+        <div class="sketch-coverage-threshold" id="coverageThreshold"></div>
+      </div>
+    </div>
+
+    <!-- Feedback -->
+    <div class="sketch-feedback" id="sketchFeedback">Start tracing! ✏️</div>
+
+    <!-- Toolbar: colors + sizes -->
+    <div class="sketch-toolbar" id="sketchToolbar"></div>
+
+    <!-- Actions -->
+    <div class="sketch-toolbar">
+      <button class="sketch-action-btn" onclick="clearSketch()">🗑️ Clear</button>
+      <button class="sketch-action-btn" onclick="undoSketch()">↩️ Undo</button>
+      <button class="sketch-action-btn skip" onclick="skipSketchLetter()">⏭️ Skip</button>
+    </div>
+  </div>
+
+  <!-- Quiz Section -->
+  <div class="quiz-section hidden" id="quizSection"></div>
+</div>
+
+<!-- ===== DETAIL PAGE ===== -->
+<div class="detail-page page hidden" id="detailPage">
+  <div class="habitat-scene" id="habitatScene">
+    <div class="scene-sky" id="sceneSky"></div>
+    <div class="scene-ground" id="sceneGround"></div>
+    <div class="scene-elements" id="sceneElements"></div>
+  </div>
+
+  <div class="detail-top-bar">
+    <button class="detail-back-btn" id="detailBackBtn">← Back</button>
+    <div class="detail-nav-group">
+      <button class="detail-nav" id="detailPrev" aria-label="Previous">◀</button>
+      <button class="detail-nav" id="detailNext" aria-label="Next">▶</button>
+    </div>
+  </div>
+
+  <div class="detail-content" id="detailContent">
+    <div class="detail-letters" id="detailLetters">
+      <div class="detail-upper" id="detailUpper">A</div>
+      <div class="detail-lower" id="detailLower">a</div>
+    </div>
+
+    <div class="detail-emoji-wrapper" id="detailEmojiWrapper">
+      <div class="detail-emoji-display" id="detailEmojiDisplay"></div>
+    </div>
+
+    <div class="detail-animal-name" id="detailAnimalName"></div>
+    <div class="detail-phonics" id="detailPhonics"></div>
+    <div class="detail-fact" id="detailFact"></div>
+
+    <div class="detail-habitat-card" id="detailHabitatCard">
+      <div class="habitat-card-title">🗺️ Where Do I Live?</div>
+      <div class="habitat-card-body">
+        <div class="habitat-card-icon" id="habitatCardIcon"></div>
+        <div class="habitat-card-info">
+          <div class="habitat-card-name" id="habitatCardName"></div>
+          <div class="habitat-card-region" id="habitatCardRegion"></div>
+          <div class="habitat-card-desc" id="habitatCardDesc"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="detail-actions" id="detailActions">
+      <button class="action-btn" id="btnHearAgain">🔊 Hear Again</button>
+      <button class="action-btn" id="btnAnimalSound">🔉 Animal Sound</button>
+    </div>
+
+    <div class="back-hint">tap anywhere to go back</div>
+  </div>
+</div>
+
+<!-- ===== COMPLETION MODAL ===== -->
+<div class="completion-overlay hidden" id="completionOverlay">
+  <div class="completion-modal">
+    <div class="trophy">🏆</div>
+    <h2>Amazing Job!</h2>
+    <p>You explored all 26 letters!<br>You're an alphabet superstar! 🌟</p>
+    <button onclick="closeCompletion()">Keep Exploring!</button>
+  </div>
 </div>
 
 <script>
   // ============================================================
-  // CONFIGURATION
+  // DATA — All stored locally, zero external APIs
   // ============================================================
 
-  // Unsplash API key — replace with your own access key
-  const UNSPLASH_ACCESS_KEY = 'YOUR_UNSPLASH_ACCESS_KEY';
-
-  // ============================================================
-  // DATA
-  // ============================================================
-
-  const ANIMALS = {
-    A:'Alligator', B:'Bear',    C:'Cat',      D:'Dog',
-    E:'Elephant',  F:'Frog',    G:'Giraffe',  H:'Horse',
-    I:'Iguana',    J:'Jellyfish',K:'Kangaroo', L:'Lion',
-    M:'Monkey',    N:'Narwhal', O:'Owl',      P:'Penguin',
-    Q:'Quail',     R:'Rabbit',  S:'Snake',    T:'Tiger',
-    U:'Unicorn',   V:'Vulture', W:'Whale',    X:'Fox',
-    Y:'Yak',       Z:'Zebra'
+  const DATA = {
+    A: { animal: 'Alligator', emoji: '🐊', color: '#FFD6D6', sound: 'ah', animalSound: 'SNAP SNAP!', fact: 'Alligators have been around since the time of dinosaurs — over 200 million years!', habitat: { name: 'Swamp & Wetlands', icon: '🌿', continent: '🌎 North America', desc: 'Alligators live in warm, shallow swamps, marshes, rivers, and lakes.', sky: 'linear-gradient(180deg, #87CEEB 0%, #B0D4B0 100%)', ground: 'linear-gradient(180deg, #5A8A5A 0%, #3D6B3D 100%)', elements: ['🌿','🌾','💧','🌿','🪷','🌾'] } },
+    B: { animal: 'Bear', emoji: '🐻', color: '#D6E8FF', sound: 'buh', animalSound: 'GRRR ROAR!', fact: 'Bears can run as fast as a horse — up to 35 miles per hour!', habitat: { name: 'Forest', icon: '🌲', continent: '🌎🌍🌏 Worldwide', desc: 'Bears live in forests, mountains, and meadows with lots of trees and streams.', sky: 'linear-gradient(180deg, #6BB3D9 0%, #A8D5A2 100%)', ground: 'linear-gradient(180deg, #4A7A3A 0%, #2D5A1E 100%)', elements: ['🌲','🌳','🍂','🌲','🍄','🌳'] } },
+    C: { animal: 'Cat', emoji: '🐱', color: '#FFF3D6', sound: 'kuh', animalSound: 'MEOW!', fact: 'Cats sleep for about 16 hours every day — more than any other pet!', habitat: { name: 'Home & Neighborhood', icon: '🏠', continent: '🌍 Everywhere', desc: 'Pet cats live in homes! Wild cats roam on every continent except Antarctica.', sky: 'linear-gradient(180deg, #87CEEB 0%, #FFE4B5 100%)', ground: 'linear-gradient(180deg, #90C590 0%, #7AB57A 100%)', elements: ['🏠','🌻','🌸','🏡','🌷','🦋'] } },
+    D: { animal: 'Dog', emoji: '🐶', color: '#D6FFD6', sound: 'duh', animalSound: 'WOOF WOOF!', fact: 'Dogs can smell 10,000 times better than humans!', habitat: { name: 'Home & Neighborhood', icon: '🏠', continent: '🌍 Everywhere', desc: 'Dogs live with people as best friends! Their cousins, wolves, live in forests.', sky: 'linear-gradient(180deg, #87CEEB 0%, #FFD6A5 100%)', ground: 'linear-gradient(180deg, #7EC87E 0%, #5CA85C 100%)', elements: ['🏠','🌳','🦴','🏡','⚾','🌳'] } },
+    E: { animal: 'Elephant', emoji: '🐘', color: '#E8D6FF', sound: 'eh', animalSound: 'TOOT TOOT!', fact: 'Elephants are the largest land animals on Earth and they never forget!', habitat: { name: 'African Savanna', icon: '🌍', continent: '🌍 Africa & 🌏 Asia', desc: 'Elephants roam across wide grasslands and forests needing lots of space.', sky: 'linear-gradient(180deg, #F4A460 0%, #FFEAA7 100%)', ground: 'linear-gradient(180deg, #C8A84E 0%, #A08030 100%)', elements: ['🌾','🌴','☀️','🌾','🌿','🌴'] } },
+    F: { animal: 'Frog', emoji: '🐸', color: '#D6FFF0', sound: 'fff', animalSound: 'RIBBIT RIBBIT!', fact: 'Some frogs can jump 20 times their own body length!', habitat: { name: 'Pond & Wetlands', icon: '💧', continent: '🌍 Everywhere', desc: 'Frogs love wet places — ponds, streams, and rain forests.', sky: 'linear-gradient(180deg, #87CEEB 0%, #90EE90 100%)', ground: 'linear-gradient(180deg, #4AA04A 0%, #2D802D 100%)', elements: ['🪷','💧','🌿','🪷','🌾','💧'] } },
+    G: { animal: 'Giraffe', emoji: '🦒', color: '#FFE8D6', sound: 'guh', animalSound: 'HUM HUM!', fact: 'Giraffes are the tallest animals — as tall as a two-story building!', habitat: { name: 'African Savanna', icon: '🌍', continent: '🌍 Africa', desc: 'Giraffes eat leaves from the very tops of tall trees on sunny grasslands.', sky: 'linear-gradient(180deg, #F0C050 0%, #FFE4A0 100%)', ground: 'linear-gradient(180deg, #C8B050 0%, #A09030 100%)', elements: ['🌴','🌾','☀️','🌴','🌿','🌾'] } },
+    H: { animal: 'Horse', emoji: '🐴', color: '#D6F0FF', sound: 'huh', animalSound: 'NEIGH!', fact: 'Horses can sleep standing up — their legs lock in place!', habitat: { name: 'Farm & Grasslands', icon: '🌾', continent: '🌍 Everywhere', desc: 'Horses live on farms and in open grasslands. Wild horses run free!', sky: 'linear-gradient(180deg, #87CEEB 0%, #B0D4F0 100%)', ground: 'linear-gradient(180deg, #7AB87A 0%, #5A985A 100%)', elements: ['🌾','🏠','🌻','🌾','⛅','🌿'] } },
+    I: { animal: 'Iguana', emoji: '🦎', color: '#FFD6F0', sound: 'ih', animalSound: 'HISS!', fact: 'Iguanas can hold their breath underwater for up to 30 minutes!', habitat: { name: 'Tropical Jungle', icon: '🌴', continent: '🌎 Central & South America', desc: 'Iguanas love warm tropical places, climbing trees and basking in the sun.', sky: 'linear-gradient(180deg, #4AA0A0 0%, #90D090 100%)', ground: 'linear-gradient(180deg, #2D8A2D 0%, #1A6A1A 100%)', elements: ['🌴','🌿','🌺','🌴','🦜','🌿'] } },
+    J: { animal: 'Jellyfish', emoji: '🪼', color: '#D6FFE8', sound: 'juh', animalSound: 'BLOOP BLOOP!', fact: 'Jellyfish have been around longer than dinosaurs — over 500 million years!', habitat: { name: 'Ocean', icon: '🌊', continent: '🌊 All Oceans', desc: 'Jellyfish float through every ocean, drifting with the currents.', sky: 'linear-gradient(180deg, #4A90B0 0%, #2070A0 100%)', ground: 'linear-gradient(180deg, #1A5A8A 0%, #0A3A6A 100%)', elements: ['🌊','🐚','🪸','🌊','🫧','🐚'] } },
+    K: { animal: 'Kangaroo', emoji: '🦘', color: '#F0FFD6', sound: 'kuh', animalSound: 'CHUK CHUK!', fact: "Baby kangaroos are called joeys and live in their mom's pouch!", habitat: { name: 'Australian Outback', icon: '🏜️', continent: '🌏 Australia', desc: 'Kangaroos hop across the wide, dry grasslands of Australia.', sky: 'linear-gradient(180deg, #E0A040 0%, #F0C880 100%)', ground: 'linear-gradient(180deg, #C09040 0%, #A07030 100%)', elements: ['☀️','🌵','🌾','☀️','🪨','🌾'] } },
+    L: { animal: 'Lion', emoji: '🦁', color: '#FFD6E8', sound: 'lll', animalSound: 'ROAR!', fact: "A lion's roar can be heard from 5 miles away!", habitat: { name: 'African Savanna', icon: '🌍', continent: '🌍 Africa', desc: 'Lions rest in shade during hot days and hunt at night on grassy plains.', sky: 'linear-gradient(180deg, #E8A830 0%, #FFD060 100%)', ground: 'linear-gradient(180deg, #C0A040 0%, #908020 100%)', elements: ['🌴','🌾','☀️','🌿','🌅','🌾'] } },
+    M: { animal: 'Monkey', emoji: '🐒', color: '#D6D6FF', sound: 'mmm', animalSound: 'OOH OOH AH AH!', fact: 'Monkeys use their tails like an extra hand to swing from trees!', habitat: { name: 'Tropical Rainforest', icon: '🌴', continent: '🌎🌍🌏 Americas, Africa, Asia', desc: 'Monkeys swing from branch to branch high in hot, wet rainforests!', sky: 'linear-gradient(180deg, #40A080 0%, #80C080 100%)', ground: 'linear-gradient(180deg, #2D7A2D 0%, #1A5A1A 100%)', elements: ['🌴','🌿','🍌','🌴','🦜','🌺'] } },
+    N: { animal: 'Narwhal', emoji: '🦄', color: '#E8FFD6', sound: 'nnn', animalSound: 'CLICK CLICK!', fact: 'Narwhals are called unicorns of the sea because of their long tusk!', habitat: { name: 'Arctic Ocean', icon: '🧊', continent: '🌎 Arctic', desc: 'Narwhals swim in freezing Arctic waters near icebergs and sea ice.', sky: 'linear-gradient(180deg, #B0D0E8 0%, #D0E8F0 100%)', ground: 'linear-gradient(180deg, #4090B0 0%, #2070A0 100%)', elements: ['🧊','❄️','🌊','🧊','⛄','❄️'] } },
+    O: { animal: 'Owl', emoji: '🦉', color: '#FFE8E8', sound: 'awe', animalSound: 'HOO HOO!', fact: 'Owls can turn their heads almost all the way around — 270 degrees!', habitat: { name: 'Forest', icon: '🌲', continent: '🌍 Everywhere', desc: 'Owls sleep during the day and hunt at night with super hearing.', sky: 'linear-gradient(180deg, #2A3A5A 0%, #4A5A7A 100%)', ground: 'linear-gradient(180deg, #3A5A3A 0%, #2A4A2A 100%)', elements: ['🌲','🌙','⭐','🌲','🌳','⭐'] } },
+    P: { animal: 'Penguin', emoji: '🐧', color: '#D6FFFF', sound: 'puh', animalSound: 'HONK HONK!', fact: "Penguins can't fly, but they swim as fast as 22 mph!", habitat: { name: 'Antarctic Ice', icon: '🧊', continent: '🌍 Antarctica', desc: 'Penguins live on icy shores and huddle together to stay warm.', sky: 'linear-gradient(180deg, #A0C8E0 0%, #D0E0F0 100%)', ground: 'linear-gradient(180deg, #E8F0F8 0%, #C8D8E8 100%)', elements: ['❄️','🧊','🌊','❄️','⛄','🧊'] } },
+    Q: { animal: 'Quail', emoji: '🐦', color: '#F5D6FF', sound: 'kwuh', animalSound: 'BOB WHITE!', fact: 'Baby quails can run as soon as they hatch — born ready to go!', habitat: { name: 'Meadow & Grassland', icon: '🌸', continent: '🌎🌍 Americas & Europe', desc: 'Quails live in meadows and farm fields, nesting in tall grass.', sky: 'linear-gradient(180deg, #87CEEB 0%, #E0F0A0 100%)', ground: 'linear-gradient(180deg, #80B860 0%, #60A040 100%)', elements: ['🌸','🌻','🦋','🌾','🌷','🌸'] } },
+    R: { animal: 'Rabbit', emoji: '🐰', color: '#FFECD6', sound: 'rrr', animalSound: 'SQUEAK!', fact: "A rabbit's teeth never stop growing — they chew to keep them short!", habitat: { name: 'Meadow & Burrows', icon: '🌸', continent: '🌍 Everywhere', desc: 'Rabbits dig underground tunnels called burrows in meadows and fields.', sky: 'linear-gradient(180deg, #87CEEB 0%, #C0E8A0 100%)', ground: 'linear-gradient(180deg, #6AAA4A 0%, #4A8A2A 100%)', elements: ['🌸','🥕','🌿','🌻','🍀','🌸'] } },
+    S: { animal: 'Snake', emoji: '🐍', color: '#D6FFDA', sound: 'sss', animalSound: 'HISSS!', fact: 'Snakes smell with their tongues by flicking them in and out!', habitat: { name: 'Desert & Forest', icon: '🏜️', continent: '🌍 Everywhere', desc: 'Snakes live in deserts, forests, swamps, and even oceans!', sky: 'linear-gradient(180deg, #E0A840 0%, #F0D080 100%)', ground: 'linear-gradient(180deg, #D0A050 0%, #B08030 100%)', elements: ['🌵','☀️','🪨','🌵','🏜️','☀️'] } },
+    T: { animal: 'Tiger', emoji: '🐯', color: '#FFD6C8', sound: 'tuh', animalSound: 'ROAR GROWL!', fact: 'Every tiger has unique stripes — no two tigers look the same!', habitat: { name: 'Asian Jungle', icon: '🌴', continent: '🌏 Asia', desc: 'Tigers prowl through dense jungles and love cooling off in rivers!', sky: 'linear-gradient(180deg, #50A070 0%, #80C070 100%)', ground: 'linear-gradient(180deg, #2A6A2A 0%, #1A4A1A 100%)', elements: ['🌴','🌿','🎋','🌴','🌺','🌿'] } },
+    U: { animal: 'Unicorn', emoji: '🦄', color: '#E0D6FF', sound: 'uh', animalSound: '✨ SPARKLE NEIGH!', fact: 'Unicorns are magical horses — legends say they bring good luck!', habitat: { name: 'Enchanted Forest', icon: '✨', continent: '✨ Land of Imagination', desc: 'Unicorns live in magical forests with sparkling rivers and rainbows!', sky: 'linear-gradient(180deg, #C080E0 0%, #E0A0F0 100%)', ground: 'linear-gradient(180deg, #70B070 0%, #50A050 100%)', elements: ['✨','🌈','🌸','⭐','🦋','✨'] } },
+    V: { animal: 'Vulture', emoji: '🦅', color: '#DAFFD6', sound: 'vvv', animalSound: 'HISS GRUNT!', fact: 'Vultures soar for hours without flapping — riding warm air currents!', habitat: { name: 'Mountains & Plains', icon: '⛰️', continent: '🌎🌍🌏 Worldwide', desc: 'Vultures soar high above mountains and deserts with amazing eyesight.', sky: 'linear-gradient(180deg, #6A9AC0 0%, #A0C0E0 100%)', ground: 'linear-gradient(180deg, #8A7A60 0%, #6A5A40 100%)', elements: ['⛰️','🏔️','☁️','⛰️','🌤️','☁️'] } },
+    W: { animal: 'Whale', emoji: '🐋', color: '#D6ECFF', sound: 'wuh', animalSound: 'WHOOO WHOOO!', fact: 'Blue whales are the biggest animals ever — bigger than any dinosaur!', habitat: { name: 'Open Ocean', icon: '🌊', continent: '🌊 All Oceans', desc: 'Whales swim across every ocean, traveling thousands of miles each year.', sky: 'linear-gradient(180deg, #3080B0 0%, #50A0D0 100%)', ground: 'linear-gradient(180deg, #1060A0 0%, #083070 100%)', elements: ['🌊','🐚','🫧','🌊','☁️','🌊'] } },
+    X: { animal: 'Fox', emoji: '🦊', color: '#FFE0D6', sound: 'ks', animalSound: 'YIP YIP!', fact: 'Foxes can hear a mouse under the snow and pounce headfirst!', habitat: { name: 'Forest & Fields', icon: '🌲', continent: '🌎🌍🌏 Worldwide', desc: 'Foxes live in forests, fields, mountains, and even cities!', sky: 'linear-gradient(180deg, #70A0C0 0%, #A0C8D8 100%)', ground: 'linear-gradient(180deg, #5A8A3A 0%, #3A6A1A 100%)', elements: ['🌲','🍂','🌳','🌲','🍁','🌿'] } },
+    Y: { animal: 'Yak', emoji: '🐂', color: '#FFFDD6', sound: 'yuh', animalSound: 'GRUNT SNORT!', fact: 'Yaks live high in the mountains — their thick fur keeps them warm!', habitat: { name: 'High Mountains', icon: '⛰️', continent: '🌏 Central Asia', desc: "Yaks live on the highest mountains where most animals can't survive.", sky: 'linear-gradient(180deg, #5080A0 0%, #A0C0D0 100%)', ground: 'linear-gradient(180deg, #7A8A70 0%, #5A6A50 100%)', elements: ['⛰️','🏔️','❄️','⛰️','☁️','🏔️'] } },
+    Z: { animal: 'Zebra', emoji: '🦓', color: '#D6E0FF', sound: 'zzz', animalSound: 'BARK BARK!', fact: 'Every zebra has unique stripes — like fingerprints, no two are the same!', habitat: { name: 'African Savanna', icon: '🌍', continent: '🌍 Africa', desc: 'Zebras gallop across African grasslands in large herds for safety.', sky: 'linear-gradient(180deg, #D0A030 0%, #F0D060 100%)', ground: 'linear-gradient(180deg, #B0A040 0%, #908020 100%)', elements: ['🌾','🌴','☀️','🌾','🌅','🌴'] } }
   };
 
-  const EMOJI_FALLBACKS = {
-    A:'🐊', B:'🐻', C:'🐱', D:'🐶',
-    E:'🐘', F:'🐸', G:'🦒', H:'🐴',
-    I:'🦎', J:'🪼', K:'🦘', L:'🦁',
-    M:'🐒', N:'🦄', O:'🦉', P:'🐧',
-    Q:'🐦', R:'🐰', S:'🐍', T:'🐯',
-    U:'🦄', V:'🦅', W:'🐋', X:'🦊',
-    Y:'🐂', Z:'🦓'
-  };
-
-  const PASTEL_COLORS = {
-    A:'#FFD6D6', B:'#D6E8FF', C:'#FFF3D6', D:'#D6FFD6',
-    E:'#E8D6FF', F:'#D6FFF0', G:'#FFE8D6', H:'#D6F0FF',
-    I:'#FFD6F0', J:'#D6FFE8', K:'#F0FFD6', L:'#FFD6E8',
-    M:'#D6D6FF', N:'#E8FFD6', O:'#FFE8E8', P:'#D6FFFF',
-    Q:'#F5D6FF', R:'#FFECD6', S:'#D6FFDA', T:'#FFD6C8',
-    U:'#E0D6FF', V:'#DAFFD6', W:'#D6ECFF', X:'#FFE0D6',
-    Y:'#FFFDD6', Z:'#D6E0FF'
-  };
-
-  const LETTER_SOUNDS = {
-    A:'ah',  B:'buh', C:'kuh', D:'duh',
-    E:'eh',  F:'fff', G:'guh', H:'huh',
-    I:'ih',  J:'juh', K:'kuh', L:'lll',
-    M:'mmm', N:'nnn', O:'awe', P:'puh',
-    Q:'kwuh',R:'rrr', S:'sss', T:'tuh',
-    U:'uh',  V:'vvv', W:'wuh', X:'ks',
-    Y:'yuh', Z:'zzz'
-  };
+  const LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
 
   // ============================================================
   // STATE
   // ============================================================
 
-  const LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
   let currentIndex = 0;
-  let animalRevealed = false;
-  let reachedZ = false;
-  let imageCache = {};
   let visitedLetters = new Set();
+  let completionShown = false;
+
+  // Quiz state
+  let quizLetters = [];
+  let quizIndex = 0;
+  let quizScore = 0;
+  let quizStreak = 0;
+  let quizAnswered = false;
+
+  // Sketch state
+  let sketchShuffledLetters = [];       // Randomized order of letters
+  let sketchQueueIndex = 0;             // Current position in shuffled queue
+  let sketchCompletedSet = new Set();   // Letters successfully traced
+  let sketchCase = 'upper';
+  let sketchColor = '#FF6B6B';
+  let sketchLineWidth = 22;
+  let sketchIsDrawing = false;
+  let sketchPaths = [];
+  let sketchCurrentPath = [];
+  let sketchCelebrated = false;         // Prevents double-celebration per letter
+
+  // Coverage verification
+  const COVERAGE_THRESHOLD = 0.20;       // 20% coverage required to pass (toddler-friendly!)
+  let cachedGuideData = null;            // Cached guide letter pixel data
+  let cachedGuideKey = '';               // Cache key (letter + case)
 
   // ============================================================
   // DOM REFERENCES
   // ============================================================
 
-  const homePage       = document.getElementById('homePage');
-  const letterGrid     = document.getElementById('letterGrid');
-  const detailPage     = document.getElementById('detailPage');
-  const detailLetter   = document.getElementById('detailLetter');
-  const detailImageWrapper = document.getElementById('detailImageWrapper');
-  const detailImage    = document.getElementById('detailImage');
-  const detailFallback = document.getElementById('detailFallback');
-  const detailAnimalName = document.getElementById('detailAnimalName');
-  const detailSpinner  = document.getElementById('detailSpinner');
-  const detailPrev     = document.getElementById('detailPrev');
-  const detailNext     = document.getElementById('detailNext');
-  const revealHint     = document.getElementById('revealHint');
+  const homePage           = document.getElementById('homePage');
+  const letterGrid         = document.getElementById('letterGrid');
+  const detailPage         = document.getElementById('detailPage');
+  const detailContent      = document.getElementById('detailContent');
+  const detailLetters      = document.getElementById('detailLetters');
+  const detailUpper        = document.getElementById('detailUpper');
+  const detailLower        = document.getElementById('detailLower');
+  const detailEmojiWrapper = document.getElementById('detailEmojiWrapper');
+  const detailEmojiDisplay = document.getElementById('detailEmojiDisplay');
+  const detailAnimalName   = document.getElementById('detailAnimalName');
+  const detailPhonics      = document.getElementById('detailPhonics');
+  const detailFact         = document.getElementById('detailFact');
+  const detailHabitatCard  = document.getElementById('detailHabitatCard');
+  const habitatCardIcon    = document.getElementById('habitatCardIcon');
+  const habitatCardName    = document.getElementById('habitatCardName');
+  const habitatCardRegion  = document.getElementById('habitatCardRegion');
+  const habitatCardDesc    = document.getElementById('habitatCardDesc');
+  const detailActions      = document.getElementById('detailActions');
+  const detailPrev         = document.getElementById('detailPrev');
+  const detailNext         = document.getElementById('detailNext');
+  const detailBackBtn      = document.getElementById('detailBackBtn');
+  const btnHearAgain       = document.getElementById('btnHearAgain');
+  const btnAnimalSound     = document.getElementById('btnAnimalSound');
+  const progressFill       = document.getElementById('progressFill');
+  const progressText       = document.getElementById('progressText');
+  const progressPercent    = document.getElementById('progressPercent');
+  const quizSection        = document.getElementById('quizSection');
+  const sketchSection      = document.getElementById('sketchSection');
+  const completionOverlay  = document.getElementById('completionOverlay');
+  const sceneSky           = document.getElementById('sceneSky');
+  const sceneGround        = document.getElementById('sceneGround');
+  const sceneElements      = document.getElementById('sceneElements');
+  const sketchCanvas       = document.getElementById('sketchCanvas');
+  const sketchCtx          = sketchCanvas.getContext('2d');
+  const sketchGuideLetter  = document.getElementById('sketchGuideLetter');
+  const sketchLetterLabel  = document.getElementById('sketchLetterLabel');
+  const sketchCelebration  = document.getElementById('sketchCelebration');
+  const sketchCanvasWrapper = document.getElementById('sketchCanvasWrapper');
+  const coveragePct        = document.getElementById('coveragePct');
+  const coverageFill       = document.getElementById('coverageFill');
+  const coverageThreshold  = document.getElementById('coverageThreshold');
+  const sketchFeedback     = document.getElementById('sketchFeedback');
 
   // ============================================================
-  // BUILD THE HOME PAGE GRID
+  // WEB AUDIO — Sound effects
+  // ============================================================
+
+  const AudioCtx = window.AudioContext || window.webkitAudioContext;
+  let audioCtx;
+
+  function ensureAudio() { if (!audioCtx) audioCtx = new AudioCtx(); }
+
+  function playTone(freq, duration, type = 'sine', volume = 0.1) {
+    try {
+      ensureAudio();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = type;
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(volume, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+      osc.connect(gain); gain.connect(audioCtx.destination);
+      osc.start(); osc.stop(audioCtx.currentTime + duration);
+    } catch(e) {}
+  }
+
+  function playTapSound()     { playTone(880, 0.1, 'sine', 0.08); }
+  function playSuccessSound() { playTone(523, 0.15); setTimeout(() => playTone(659, 0.15), 100); setTimeout(() => playTone(784, 0.2), 200); }
+  function playWrongSound()   { playTone(200, 0.3, 'sawtooth', 0.06); }
+  function playStarSound()    { playTone(1200, 0.1); setTimeout(() => playTone(1500, 0.15), 80); }
+
+  // ============================================================
+  // VOICE SELECTION — Pick the most natural, teacher-like voice
+  // ============================================================
+
+  /**
+   * We rank voices by preference to find a warm, natural-sounding
+   * female voice — like a friendly elementary school teacher.
+   *
+   * Priority order:
+   *  1. Enhanced/premium voices (marked "Enhanced", "Premium", or "Natural")
+   *  2. Specific known-good voices: Samantha (Apple), Zira (Windows),
+   *     Google US English Female, Karen (AU), Moira (IE)
+   *  3. Any other female English voice
+   *  4. Any English voice at all
+   *  5. Default (whatever the browser picks)
+   */
+
+  let cachedVoice = null;
+  let voicesLoaded = false;
+
+  // Names of voices known to sound warm and natural
+  const PREFERRED_VOICES = [
+    // Apple enhanced voices (iOS / macOS) — these sound excellent
+    'samantha (enhanced)', 'samantha', 'karen (enhanced)', 'karen',
+    'moira (enhanced)', 'moira', 'tessa (enhanced)', 'tessa',
+    'fiona (enhanced)', 'fiona',
+    // Google voices (Chrome / Android) — clear and friendly
+    'google us english', 'google uk english female',
+    // Microsoft voices (Windows / Edge)
+    'microsoft zira', 'zira',
+    'microsoft aria', 'aria',
+    // Android
+    'english united states', 'english (us)',
+  ];
+
+  // Words that indicate a higher-quality voice
+  const QUALITY_KEYWORDS = ['enhanced', 'premium', 'natural', 'neural', 'wavenet'];
+
+  // Words that suggest a female voice
+  const FEMALE_KEYWORDS = ['female', 'samantha', 'karen', 'zira', 'aria',
+    'moira', 'tessa', 'fiona', 'victoria', 'allison', 'ava', 'susan',
+    'hazel', 'kate', 'serena', 'veena', 'joanna', 'salli', 'kendra',
+    'kimberly', 'ivy', 'jenny', 'michelle'];
+
+  function scoreVoice(voice) {
+    const name = voice.name.toLowerCase();
+    const lang = (voice.lang || '').toLowerCase();
+    let score = 0;
+
+    // Must be English
+    if (!lang.startsWith('en')) return -1;
+
+    // Bonus for US or GB English
+    if (lang === 'en-us' || lang === 'en_us') score += 5;
+    if (lang === 'en-gb' || lang === 'en_gb') score += 3;
+
+    // Check if it's a preferred voice (big bonus)
+    for (let i = 0; i < PREFERRED_VOICES.length; i++) {
+      if (name.includes(PREFERRED_VOICES[i])) {
+        score += 50 - i; // Earlier in list = higher score
+        break;
+      }
+    }
+
+    // Bonus for quality keywords
+    for (const kw of QUALITY_KEYWORDS) {
+      if (name.includes(kw)) { score += 30; break; }
+    }
+
+    // Bonus for female-sounding voices
+    for (const kw of FEMALE_KEYWORDS) {
+      if (name.includes(kw)) { score += 15; break; }
+    }
+
+    // Slight bonus for local (non-remote) voices — lower latency
+    if (voice.localService) score += 2;
+
+    return score;
+  }
+
+  function pickBestVoice() {
+    if (cachedVoice) return cachedVoice;
+
+    const voices = speechSynthesis.getVoices();
+    if (!voices || voices.length === 0) return null;
+
+    let bestVoice = null;
+    let bestScore = -1;
+
+    for (const voice of voices) {
+      const s = scoreVoice(voice);
+      if (s > bestScore) {
+        bestScore = s;
+        bestVoice = voice;
+      }
+    }
+
+    if (bestVoice) {
+      cachedVoice = bestVoice;
+      console.log(`🎤 Selected voice: "${bestVoice.name}" (${bestVoice.lang}) — score: ${bestScore}`);
+    }
+
+    // Log all available English voices so user can debug
+    console.log('🎤 All available English voices:');
+    for (const v of voices) {
+      if ((v.lang || '').toLowerCase().startsWith('en')) {
+        console.log(`   "${v.name}" (${v.lang}) local:${v.localService} score:${scoreVoice(v)}`);
+      }
+    }
+
+    return cachedVoice;
+  }
+
+  // Voices load asynchronously on most browsers
+  if ('speechSynthesis' in window) {
+    speechSynthesis.onvoiceschanged = () => {
+      voicesLoaded = true;
+      cachedVoice = null; // Re-pick in case new voices appeared
+      pickBestVoice();
+    };
+    // Try immediately too (some browsers have voices ready)
+    pickBestVoice();
+  }
+
+  // ============================================================
+  // FLOATING BUBBLES
+  // ============================================================
+
+  function createBubbles() {
+    const container = document.getElementById('bubblesContainer');
+    const colors = ['#FF6B6B','#4ECDC4','#45B7D1','#FFEAA7','#DDA0DD','#98D8C8','#F7DC6F','#BB8FCE','#85C1E9'];
+    for (let i = 0; i < 15; i++) {
+      const bubble = document.createElement('div');
+      bubble.classList.add('bubble');
+      const size = Math.random() * 40 + 15;
+      bubble.style.cssText = `left:${Math.random()*100}%;width:${size}px;height:${size}px;background:${colors[Math.floor(Math.random()*colors.length)]};animation-duration:${Math.random()*15+10}s;animation-delay:${Math.random()*10}s;`;
+      container.appendChild(bubble);
+    }
+  }
+
+  // ============================================================
+  // PROGRESS
+  // ============================================================
+
+  function updateProgress() {
+    const count = visitedLetters.size;
+    const pct = Math.round((count / 26) * 100);
+    progressFill.style.width = pct + '%';
+    progressText.textContent = `⭐ ${count} / 26 Letters Explored`;
+    progressPercent.textContent = pct + '%';
+
+    if (count === 26 && !completionShown) {
+      completionShown = true;
+      setTimeout(() => {
+        launchConfetti();
+        completionOverlay.classList.remove('hidden');
+        requestAnimationFrame(() => completionOverlay.classList.add('visible'));
+      }, 800);
+    }
+  }
+
+  function closeCompletion() {
+    completionOverlay.classList.remove('visible');
+    setTimeout(() => completionOverlay.classList.add('hidden'), 400);
+  }
+
+  // ============================================================
+  // TAB SWITCHING
+  // ============================================================
+
+  function switchTab(tab) {
+    document.getElementById('tabLetters').classList.toggle('active', tab === 'letters');
+    document.getElementById('tabSketch').classList.toggle('active', tab === 'sketch');
+    document.getElementById('tabQuiz').classList.toggle('active', tab === 'quiz');
+
+    letterGrid.style.display = tab === 'letters' ? '' : 'none';
+    sketchSection.classList.toggle('hidden', tab !== 'sketch');
+    quizSection.classList.toggle('hidden', tab !== 'quiz');
+
+    if (tab === 'sketch') initSketch();
+    if (tab === 'quiz') startQuiz();
+
+    playTapSound();
+  }
+
+  // ============================================================
+  // HOME PAGE — Letter grid
   // ============================================================
 
   function buildGrid() {
     letterGrid.innerHTML = '';
     LETTERS.forEach((letter, i) => {
+      const d = DATA[letter];
       const tile = document.createElement('div');
       tile.classList.add('letter-tile');
       if (visitedLetters.has(letter)) tile.classList.add('visited');
-      tile.style.backgroundColor = PASTEL_COLORS[letter];
-      // Staggered entrance animation
-      tile.style.animationDelay = (i * 0.025) + 's';
-
+      tile.style.backgroundColor = d.color;
+      tile.style.animationDelay = (i * 0.02) + 's';
       tile.innerHTML = `
-        <span class="tile-emoji">${EMOJI_FALLBACKS[letter]}</span>
+        <span class="tile-emoji">${d.emoji}</span>
         <span class="tile-letter">${letter}</span>
-        <span class="tile-animal">${ANIMALS[letter]}</span>
+        <span class="tile-animal">${d.animal}</span>
       `;
-
-      tile.addEventListener('click', () => openDetail(i));
+      tile.addEventListener('click', () => { playTapSound(); openDetail(i); });
       letterGrid.appendChild(tile);
     });
   }
 
   // ============================================================
-  // OPEN DETAIL VIEW — Show a single letter page
+  // SKETCH MODE — Finger tracing with verification
+  // ============================================================
+
+  /** Fisher-Yates shuffle */
+  function shuffleArray(arr) {
+    const shuffled = [...arr];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+  }
+
+  /** Initialize sketch tab — shuffle letters, reset state */
+  function initSketch() {
+    // Only reshuffle if we haven't started or completed all
+    if (sketchShuffledLetters.length === 0 || sketchCompletedSet.size >= 26) {
+      sketchShuffledLetters = shuffleArray(LETTERS);
+      sketchQueueIndex = 0;
+      sketchCompletedSet = new Set();
+    }
+
+    resizeSketchCanvas();
+    buildSketchToolbar();
+    updateSketchUI();
+    clearSketch();
+
+    // Position the threshold marker
+    coverageThreshold.style.left = (COVERAGE_THRESHOLD * 100) + '%';
+  }
+
+  /** Resize canvas to match wrapper dimensions */
+  function resizeSketchCanvas() {
+    const rect = sketchCanvasWrapper.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    sketchCanvas.width = rect.width * dpr;
+    sketchCanvas.height = rect.height * dpr;
+    sketchCanvas.style.width = rect.width + 'px';
+    sketchCanvas.style.height = rect.height + 'px';
+    sketchCtx.scale(dpr, dpr);
+    sketchCtx.lineCap = 'round';
+    sketchCtx.lineJoin = 'round';
+
+    // Invalidate guide cache since dimensions changed
+    cachedGuideKey = '';
+    cachedGuideData = null;
+
+    redrawSketch();
+  }
+
+  /** Build color palette (single thick brush — no size options) */
+  function buildSketchToolbar() {
+    const toolbar = document.getElementById('sketchToolbar');
+    const colors = [
+      { color: '#FF6B6B', name: 'Red' },
+      { color: '#FF9F43', name: 'Orange' },
+      { color: '#FECA57', name: 'Yellow' },
+      { color: '#48DBFB', name: 'Blue' },
+      { color: '#1DD1A1', name: 'Green' },
+      { color: '#BB8FCE', name: 'Purple' },
+      { color: '#FF6FA7', name: 'Pink' },
+      { color: '#333333', name: 'Black' },
+    ];
+
+    toolbar.innerHTML = '';
+
+    colors.forEach(c => {
+      const btn = document.createElement('button');
+      btn.classList.add('sketch-color-btn');
+      if (c.color === sketchColor) btn.classList.add('active');
+      btn.style.background = c.color;
+      btn.title = c.name;
+      btn.addEventListener('click', () => {
+        sketchColor = c.color;
+        toolbar.querySelectorAll('.sketch-color-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        playTapSound();
+      });
+      toolbar.appendChild(btn);
+    });
+  }
+
+  /** Update all sketch UI labels and guide letter */
+  function updateSketchUI() {
+    const letter = sketchShuffledLetters[sketchQueueIndex];
+    const d = DATA[letter];
+    const displayLetter = sketchCase === 'upper' ? letter : letter.toLowerCase();
+
+    sketchGuideLetter.textContent = displayLetter;
+    sketchGuideLetter.classList.toggle('lowercase', sketchCase === 'lower');
+    sketchGuideLetter.classList.remove('verified-glow');
+    sketchLetterLabel.textContent = displayLetter;
+    document.getElementById('sketchCurrentDisplay').textContent = displayLetter;
+    document.getElementById('sketchDoneCount').textContent = sketchCompletedSet.size;
+
+    // Reset celebration flag for new letter
+    sketchCelebrated = false;
+
+    // Hide celebration overlay
+    sketchCelebration.classList.remove('visible');
+    sketchCanvasWrapper.classList.remove('verified');
+
+    // Reset coverage display
+    updateCoverageDisplay(0);
+    sketchFeedback.textContent = 'Start tracing! ✏️';
+    sketchFeedback.className = 'sketch-feedback';
+
+    // Invalidate guide cache (letter changed)
+    cachedGuideKey = '';
+    cachedGuideData = null;
+  }
+
+  /** Set upper/lower case */
+  function setSketchCase(c) {
+    sketchCase = c;
+    document.getElementById('sketchUpperBtn').classList.toggle('active', c === 'upper');
+    document.getElementById('sketchLowerBtn').classList.toggle('active', c === 'lower');
+    updateSketchUI();
+    clearSketch();
+    playTapSound();
+  }
+
+  /** Clear the canvas and reset coverage */
+  function clearSketch() {
+    sketchPaths = [];
+    sketchCurrentPath = [];
+    const rect = sketchCanvasWrapper.getBoundingClientRect();
+    sketchCtx.clearRect(0, 0, rect.width, rect.height);
+    sketchCelebration.classList.remove('visible');
+    sketchCanvasWrapper.classList.remove('verified');
+    sketchGuideLetter.classList.remove('verified-glow');
+    sketchCelebrated = false;
+    updateCoverageDisplay(0);
+    sketchFeedback.textContent = 'Start tracing! ✏️';
+    sketchFeedback.className = 'sketch-feedback';
+  }
+
+  /** Undo last stroke and recalculate coverage */
+  function undoSketch() {
+    if (sketchPaths.length === 0) return;
+    sketchPaths.pop();
+    redrawSketch();
+    playTapSound();
+
+    // Recalculate coverage after undo
+    if (sketchPaths.length > 0) {
+      const coverage = calculateCoverage();
+      updateCoverageDisplay(coverage);
+      updateFeedbackMessage(coverage);
+    } else {
+      updateCoverageDisplay(0);
+      sketchFeedback.textContent = 'Start tracing! ✏️';
+      sketchFeedback.className = 'sketch-feedback';
+    }
+
+    // Reset celebration if coverage dropped
+    sketchCelebrated = false;
+    sketchCelebration.classList.remove('visible');
+    sketchCanvasWrapper.classList.remove('verified');
+    sketchGuideLetter.classList.remove('verified-glow');
+  }
+
+  /** Redraw all stored paths */
+  function redrawSketch() {
+    const rect = sketchCanvasWrapper.getBoundingClientRect();
+    sketchCtx.clearRect(0, 0, rect.width, rect.height);
+    sketchPaths.forEach(path => {
+      if (path.points.length < 2) return;
+      sketchCtx.strokeStyle = path.color;
+      sketchCtx.lineWidth = path.lineWidth;
+      sketchCtx.lineCap = 'round';
+      sketchCtx.lineJoin = 'round';
+      sketchCtx.beginPath();
+      sketchCtx.moveTo(path.points[0].x, path.points[0].y);
+      for (let i = 1; i < path.points.length; i++) {
+        sketchCtx.lineTo(path.points[i].x, path.points[i].y);
+      }
+      sketchCtx.stroke();
+    });
+  }
+
+  /** Skip current letter and move to next */
+  function skipSketchLetter() {
+    playTapSound();
+    advanceSketchLetter();
+  }
+
+  /** Advance to the next letter in the shuffled queue */
+  function advanceSketchLetter() {
+    if (sketchQueueIndex < sketchShuffledLetters.length - 1) {
+      sketchQueueIndex++;
+    } else {
+      // All letters attempted — check if all completed
+      if (sketchCompletedSet.size >= 26) {
+        showSketchComplete();
+        return;
+      }
+      // Reshuffle uncompleted letters
+      const remaining = LETTERS.filter(l => !sketchCompletedSet.has(l));
+      sketchShuffledLetters = shuffleArray(remaining);
+      sketchQueueIndex = 0;
+    }
+    updateSketchUI();
+    clearSketch();
+  }
+
+  /** Show completion message for sketch mode */
+  function showSketchComplete() {
+    sketchCelebration.querySelector('.celeb-emoji').textContent = '🏆';
+    sketchCelebration.querySelector('.celeb-text').textContent = 'All 26 letters traced!';
+    sketchCelebration.querySelector('.celeb-sub').textContent = "You're an alphabet superstar!";
+    sketchCelebration.querySelector('.celeb-score').textContent = '';
+    sketchCelebration.classList.add('visible');
+    playSuccessSound();
+    launchConfetti();
+    speakPraise("Oh my goodness! You traced all 26 letters! You are an alphabet superstar!");
+
+    // Reset after celebration
+    setTimeout(() => {
+      sketchShuffledLetters = shuffleArray(LETTERS);
+      sketchQueueIndex = 0;
+      sketchCompletedSet = new Set();
+      updateSketchUI();
+      clearSketch();
+    }, 5000);
+  }
+
+  // ============================================================
+  // COVERAGE CALCULATION — Compare user strokes to guide letter
+  // ============================================================
+
+  /**
+   * Generate (and cache) the guide letter as pixel data on an
+   * offscreen canvas. Uses the same dimensions & DPR as the
+   * drawing canvas so pixel positions align 1:1.
+   */
+  function getGuideImageData() {
+    const letter = sketchShuffledLetters[sketchQueueIndex];
+    const displayLetter = sketchCase === 'upper' ? letter : letter.toLowerCase();
+    const key = displayLetter;
+
+    // Return cache if valid
+    if (cachedGuideKey === key && cachedGuideData) return cachedGuideData;
+
+    const rect = sketchCanvasWrapper.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    const w = Math.floor(rect.width * dpr);
+    const h = Math.floor(rect.height * dpr);
+
+    const off = document.createElement('canvas');
+    off.width = w;
+    off.height = h;
+    const ctx = off.getContext('2d');
+    ctx.scale(dpr, dpr);
+
+    // Match the visual guide letter's font size
+    const computedSize = parseFloat(getComputedStyle(sketchGuideLetter).fontSize) || rect.width * 0.65;
+    const fontFamily = getComputedStyle(sketchGuideLetter).fontFamily || 'system-ui, sans-serif';
+
+    ctx.fillStyle = '#000';
+    ctx.font = `900 ${computedSize}px ${fontFamily}`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(displayLetter, rect.width / 2, rect.height / 2);
+
+    // Stroke with extra-generous width for forgiveness (toddler-friendly)
+    ctx.strokeStyle = '#000';
+    ctx.lineWidth = 35;
+    ctx.lineJoin = 'round';
+    ctx.strokeText(displayLetter, rect.width / 2, rect.height / 2);
+
+    cachedGuideData = ctx.getImageData(0, 0, w, h);
+    cachedGuideKey = key;
+    return cachedGuideData;
+  }
+
+  /**
+   * Calculate how much of the guide letter the user has covered.
+   * Returns a value from 0.0 to 1.0.
+   * Samples every 4th pixel in each direction for performance.
+   */
+  function calculateCoverage() {
+    const guideData = getGuideImageData();
+    const userData = sketchCtx.getImageData(0, 0, sketchCanvas.width, sketchCanvas.height);
+
+    const w = sketchCanvas.width;
+    const h = sketchCanvas.height;
+    const step = 4; // Sample every 4th pixel for performance
+
+    let guidePixels = 0;
+    let coveredPixels = 0;
+
+    for (let y = 0; y < h; y += step) {
+      for (let x = 0; x < w; x += step) {
+        const idx = (y * w + x) * 4;
+
+        // Check if this pixel is part of the guide letter (alpha > 50)
+        const guideAlpha = guideData.data[idx + 3];
+        if (guideAlpha > 50) {
+          guidePixels++;
+          // Check if user drew here (any alpha > 30)
+          const userAlpha = userData.data[idx + 3];
+          if (userAlpha > 30) {
+            coveredPixels++;
+          }
+        }
+      }
+    }
+
+    return guidePixels > 0 ? coveredPixels / guidePixels : 0;
+  }
+
+  /** Update coverage bar and percentage display */
+  function updateCoverageDisplay(coverage) {
+    const pct = Math.round(coverage * 100);
+    coveragePct.textContent = pct + '%';
+
+    coverageFill.style.width = Math.min(pct, 100) + '%';
+
+    // Color classes based on coverage
+    coverageFill.classList.remove('good', 'great');
+    coveragePct.classList.remove('good', 'great');
+
+    if (coverage >= COVERAGE_THRESHOLD) {
+      coverageFill.classList.add('great');
+      coveragePct.classList.add('great');
+    } else if (coverage >= COVERAGE_THRESHOLD * 0.6) {
+      coverageFill.classList.add('good');
+      coveragePct.classList.add('good');
+    }
+  }
+
+  /** Update the feedback message based on coverage */
+  function updateFeedbackMessage(coverage) {
+    const pct = coverage * 100;
+    const threshPct = COVERAGE_THRESHOLD * 100;
+
+    if (pct < 10) {
+      sketchFeedback.textContent = 'Trace over the letter! 🖐️';
+      sketchFeedback.className = 'sketch-feedback';
+    } else if (pct < threshPct * 0.5) {
+      sketchFeedback.textContent = 'Keep going! You got this! ✏️';
+      sketchFeedback.className = 'sketch-feedback encouraging';
+    } else if (pct < threshPct * 0.85) {
+      sketchFeedback.textContent = 'Getting closer! Almost there! 🌟';
+      sketchFeedback.className = 'sketch-feedback almost';
+    } else if (pct < threshPct) {
+      sketchFeedback.textContent = 'So close! Just a little more! ⭐';
+      sketchFeedback.className = 'sketch-feedback almost';
+    } else {
+      sketchFeedback.textContent = '';
+      sketchFeedback.className = 'sketch-feedback success';
+    }
+  }
+
+  /**
+   * Called after each stroke ends. Calculates coverage and
+   * auto-celebrates if threshold is reached.
+   */
+  function checkCoverageAfterStroke() {
+    if (sketchCelebrated) return;
+    if (sketchPaths.length === 0) return;
+
+    const coverage = calculateCoverage();
+    updateCoverageDisplay(coverage);
+    updateFeedbackMessage(coverage);
+
+    // Auto-celebrate when coverage threshold is reached!
+    if (coverage >= COVERAGE_THRESHOLD) {
+      celebrateSketchSuccess(coverage);
+    }
+  }
+
+  /** Celebrate a successful trace! */
+  function celebrateSketchSuccess(coverage) {
+    if (sketchCelebrated) return;
+    sketchCelebrated = true;
+
+    const letter = sketchShuffledLetters[sketchQueueIndex];
+    const d = DATA[letter];
+    const displayLetter = sketchCase === 'upper' ? letter : letter.toLowerCase();
+    const pct = Math.round(coverage * 100);
+
+    // Visual feedback
+    sketchCanvasWrapper.classList.add('verified');
+    sketchGuideLetter.classList.add('verified-glow');
+
+    // Show celebration overlay
+    sketchCelebration.querySelector('.celeb-emoji').textContent = d.emoji;
+    sketchCelebration.querySelector('.celeb-text').textContent = `Great job tracing ${displayLetter}!`;
+    sketchCelebration.querySelector('.celeb-sub').textContent = `${letter} is for ${d.animal}!`;
+    sketchCelebration.querySelector('.celeb-score').textContent = `Accuracy: ${pct}% ⭐`;
+    sketchCelebration.classList.add('visible');
+
+    // Feedback
+    sketchFeedback.textContent = 'Perfect! ⭐🎉';
+    sketchFeedback.className = 'sketch-feedback success';
+
+    // Sound & speech
+    playSuccessSound();
+    speakPraise(`Wonderful! You traced the letter ${letter}! ${letter} is for ${d.animal}!`);
+
+    // Mark as completed & visited
+    sketchCompletedSet.add(letter);
+    visitedLetters.add(letter);
+    updateProgress();
+    document.getElementById('sketchDoneCount').textContent = sketchCompletedSet.size;
+
+    // Mini confetti
+    launchMiniConfetti();
+
+    // Auto-advance after celebration
+    setTimeout(() => {
+      advanceSketchLetter();
+    }, 3500);
+  }
+
+  /** Small confetti burst for sketch celebrations */
+  function launchMiniConfetti() {
+    const colors = ['#FF6B6B','#4ECDC4','#45B7D1','#FFEAA7','#DDA0DD','#F7DC6F','#BB8FCE','#82E0AA'];
+    for (let i = 0; i < 30; i++) {
+      const piece = document.createElement('div');
+      piece.classList.add('confetti-piece');
+      const color = colors[Math.floor(Math.random() * colors.length)];
+      const left = 30 + Math.random() * 40;
+      const size = Math.random() * 8 + 4;
+      const duration = Math.random() * 1.5 + 1.5;
+      const delay = Math.random() * 0.8;
+      piece.style.cssText = `left:${left}%;width:${size}px;height:${size}px;background:${color};animation-duration:${duration}s;animation-delay:${delay}s;border-radius:${Math.random()>0.5?'50%':'2px'};`;
+      document.body.appendChild(piece);
+      setTimeout(() => piece.remove(), (duration + delay) * 1000 + 100);
+    }
+  }
+
+  // ===== Canvas touch & mouse event handlers =====
+
+  function getCanvasPos(e) {
+    const rect = sketchCanvas.getBoundingClientRect();
+    const touch = e.touches ? e.touches[0] : e;
+    return { x: touch.clientX - rect.left, y: touch.clientY - rect.top };
+  }
+
+  function onDrawStart(e) {
+    if (sketchCelebrated) return; // Don't draw during celebration
+    e.preventDefault();
+    sketchIsDrawing = true;
+    const pos = getCanvasPos(e);
+    sketchCurrentPath = { color: sketchColor, lineWidth: sketchLineWidth, points: [pos] };
+
+    // Draw a dot for single taps
+    sketchCtx.fillStyle = sketchColor;
+    sketchCtx.beginPath();
+    sketchCtx.arc(pos.x, pos.y, sketchLineWidth / 2, 0, Math.PI * 2);
+    sketchCtx.fill();
+  }
+
+  function onDrawMove(e) {
+    if (!sketchIsDrawing || sketchCelebrated) return;
+    e.preventDefault();
+    const pos = getCanvasPos(e);
+    sketchCurrentPath.points.push(pos);
+    const pts = sketchCurrentPath.points;
+    if (pts.length >= 2) {
+      sketchCtx.strokeStyle = sketchCurrentPath.color;
+      sketchCtx.lineWidth = sketchCurrentPath.lineWidth;
+      sketchCtx.lineCap = 'round';
+      sketchCtx.lineJoin = 'round';
+      sketchCtx.beginPath();
+      sketchCtx.moveTo(pts[pts.length - 2].x, pts[pts.length - 2].y);
+      sketchCtx.lineTo(pos.x, pos.y);
+      sketchCtx.stroke();
+    }
+  }
+
+  function onDrawEnd(e) {
+    if (!sketchIsDrawing) return;
+    sketchIsDrawing = false;
+    if (sketchCurrentPath.points && sketchCurrentPath.points.length > 0) {
+      sketchPaths.push(sketchCurrentPath);
+    }
+    sketchCurrentPath = [];
+
+    // Check coverage after each completed stroke
+    checkCoverageAfterStroke();
+  }
+
+  // Touch events
+  sketchCanvas.addEventListener('touchstart', onDrawStart, { passive: false });
+  sketchCanvas.addEventListener('touchmove', onDrawMove, { passive: false });
+  sketchCanvas.addEventListener('touchend', onDrawEnd);
+  sketchCanvas.addEventListener('touchcancel', onDrawEnd);
+
+  // Mouse events (desktop)
+  sketchCanvas.addEventListener('mousedown', onDrawStart);
+  sketchCanvas.addEventListener('mousemove', onDrawMove);
+  sketchCanvas.addEventListener('mouseup', onDrawEnd);
+  sketchCanvas.addEventListener('mouseleave', onDrawEnd);
+
+  // Resize handler
+  window.addEventListener('resize', () => {
+    if (!sketchSection.classList.contains('hidden')) {
+      resizeSketchCanvas();
+    }
+  });
+
+  // ============================================================
+  // DETAIL PAGE
   // ============================================================
 
   function openDetail(index) {
     currentIndex = index;
-    animalRevealed = false;
-
-    // Switch pages
     homePage.classList.add('hidden');
     detailPage.classList.remove('hidden');
     detailPage.classList.remove('opening');
     void detailPage.offsetWidth;
     detailPage.classList.add('opening');
-
-    // Update detail content and immediately reveal the animal
-    updateDetail();
+    showLetter();
     revealAnimal();
   }
 
-  // ============================================================
-  // UPDATE DETAIL — Refresh the detail view for current letter
-  // ============================================================
-
-  function updateDetail() {
+  function showLetter() {
     const letter = LETTERS[currentIndex];
+    const d = DATA[letter];
 
-    // Background color
-    detailPage.style.backgroundColor = PASTEL_COLORS[letter];
+    detailPage.style.backgroundColor = d.color;
+    detailUpper.textContent = letter;
+    detailLower.textContent = letter.toLowerCase();
+    detailLetters.classList.remove('bounce');
 
-    // Letter display
-    detailLetter.textContent = letter;
-    detailLetter.classList.remove('bounce');
-
-    // Nav buttons
     detailPrev.disabled = currentIndex === 0;
     detailNext.disabled = currentIndex === 25;
 
-    // Reset animal display
-    resetAnimalDisplay();
-
-    // Show reveal hint
-    revealHint.classList.remove('hidden');
-
-    // Reset revealed state
-    animalRevealed = false;
-  }
-
-  // ============================================================
-  // RESET ANIMAL DISPLAY
-  // ============================================================
-
-  function resetAnimalDisplay() {
-    detailImageWrapper.classList.remove('visible');
+    detailEmojiWrapper.classList.remove('visible');
     detailAnimalName.classList.remove('visible');
-    detailImage.style.display = 'none';
-    detailFallback.style.display = 'none';
-    detailSpinner.style.display = 'none';
-    detailImage.src = '';
-    detailAnimalName.textContent = '';
+    detailPhonics.classList.remove('visible');
+    detailFact.classList.remove('visible');
+    detailHabitatCard.classList.remove('visible');
+    detailActions.classList.remove('visible');
+
+    sceneSky.style.background = d.habitat.sky;
+    sceneGround.style.background = d.habitat.ground;
+
+    sceneElements.innerHTML = '';
+    const elPositions = [
+      { left: '5%', bottom: '42%' }, { left: '20%', bottom: '48%' },
+      { right: '8%', bottom: '44%' }, { right: '25%', bottom: '50%' },
+      { left: '45%', bottom: '46%' }, { left: '70%', bottom: '52%' },
+    ];
+    d.habitat.elements.forEach((el, i) => {
+      const pos = elPositions[i] || {};
+      const div = document.createElement('div');
+      div.classList.add('scene-element');
+      div.textContent = el;
+      div.style.animationDelay = (i * 0.5) + 's';
+      if (pos.left) div.style.left = pos.left;
+      if (pos.right) div.style.right = pos.right;
+      if (pos.bottom) div.style.bottom = pos.bottom;
+      sceneElements.appendChild(div);
+    });
   }
 
-  // ============================================================
-  // CLOSE DETAIL — Return to the home grid
-  // ============================================================
+  function revealAnimal() {
+    const letter = LETTERS[currentIndex];
+    const d = DATA[letter];
+    const isNew = !visitedLetters.has(letter);
+
+    visitedLetters.add(letter);
+
+    detailLetters.classList.remove('bounce');
+    void detailLetters.offsetWidth;
+    detailLetters.classList.add('bounce');
+
+    detailEmojiDisplay.textContent = d.emoji;
+    detailAnimalName.textContent = `${letter} is for ${d.animal}!`;
+    detailPhonics.textContent = `${letter} says "${d.sound}"`;
+    detailFact.textContent = d.fact;
+    btnAnimalSound.textContent = `🔉 ${d.animalSound}`;
+
+    habitatCardIcon.textContent = d.habitat.icon;
+    habitatCardName.textContent = d.habitat.name;
+    habitatCardRegion.textContent = d.habitat.continent;
+    habitatCardDesc.textContent = d.habitat.desc;
+
+    setTimeout(() => detailEmojiWrapper.classList.add('visible'), 50);
+    setTimeout(() => detailAnimalName.classList.add('visible'), 120);
+    setTimeout(() => detailPhonics.classList.add('visible'), 200);
+    setTimeout(() => detailFact.classList.add('visible'), 300);
+    setTimeout(() => detailHabitatCard.classList.add('visible'), 380);
+    setTimeout(() => detailActions.classList.add('visible'), 450);
+
+    speak(letter, d);
+
+    if (isNew) { playStarSound(); spawnStarBurst(); }
+
+    updateProgress();
+  }
 
   function closeDetail() {
-    // Stop any speech
     if ('speechSynthesis' in window) window.speechSynthesis.cancel();
-
+    speechTimeouts.forEach(t => clearTimeout(t));
+    speechTimeouts = [];
     detailPage.classList.add('hidden');
     detailPage.classList.remove('opening');
     homePage.classList.remove('hidden');
-
-    // Rebuild grid to show updated visited states
     buildGrid();
-
-    // Scroll to make sure grid is visible
     window.scrollTo(0, 0);
   }
 
   // ============================================================
-  // REVEAL ANIMAL — Triggered by tap on detail page
+  // SPEECH — Natural teacher-like delivery
   // ============================================================
 
-  function revealAnimal() {
-    if (animalRevealed) return;
-    animalRevealed = true;
+  /**
+   * Create an utterance with teacher-like voice settings.
+   * Selected voice: the most natural female English voice available.
+   *
+   * We use setTimeout-based sequencing (not the speech queue)
+   * to insert real silences between phrases — this is what makes
+   * it sound like a real person talking, not a robot reading a script.
+   */
+  function createUtterance(text, options = {}) {
+    const u = new SpeechSynthesisUtterance(text);
+    u.rate = options.rate || 0.82;
+    u.pitch = options.pitch || 1.15;
+    u.volume = options.volume || 1.0;
+    u.lang = 'en-US';
 
-    const letter = LETTERS[currentIndex];
-    const animal = ANIMALS[letter];
+    const voice = pickBestVoice();
+    if (voice) u.voice = voice;
 
-    // Mark as visited
-    visitedLetters.add(letter);
-
-    // Hide hint
-    revealHint.classList.add('hidden');
-
-    // Set animal name
-    detailAnimalName.textContent = `${letter} is for ${animal}!`;
-
-    // Bounce the letter
-    detailLetter.classList.remove('bounce');
-    void detailLetter.offsetWidth;
-    detailLetter.classList.add('bounce');
-
-    // Fetch & show image
-    fetchAnimalImage(letter, animal);
-
-    // Show name with delay
-    setTimeout(() => detailAnimalName.classList.add('visible'), 100);
-
-    // Speak
-    speak(letter, animal);
-
-    // Confetti on Z
-    if (letter === 'Z' && !reachedZ) {
-      reachedZ = true;
-      setTimeout(launchConfetti, 600);
-    }
+    return u;
   }
 
-  // ============================================================
-  // IMAGE FETCHING — Unsplash with emoji fallback
-  // ============================================================
+  /**
+   * Speak a sequence of phrases with real pauses between them.
+   * Each item is { text, rate, pitch, delay (ms before speaking) }.
+   * This creates a natural, teacher-like cadence with breathing room.
+   */
+  let speechTimeouts = [];
 
-  async function fetchAnimalImage(letter, animal) {
-    detailImageWrapper.classList.add('visible');
-    detailSpinner.style.display = 'block';
-
-    // Cache hit
-    if (imageCache[letter]) {
-      showImage(imageCache[letter], animal);
-      return;
-    }
-
-    try {
-      const query = encodeURIComponent(animal + ' animal');
-      const url = `https://api.unsplash.com/search/photos?query=${query}&per_page=1&orientation=squarish&client_id=${UNSPLASH_ACCESS_KEY}`;
-      const response = await fetch(url);
-      if (!response.ok) throw new Error('API error');
-      const data = await response.json();
-      if (data.results && data.results.length > 0) {
-        const imageUrl = data.results[0].urls.small;
-        imageCache[letter] = imageUrl;
-        showImage(imageUrl, animal);
-      } else {
-        throw new Error('No results');
-      }
-    } catch (err) {
-      console.log('Image fetch failed, using emoji:', err.message);
-      showFallbackEmoji(letter);
-    }
-  }
-
-  function showImage(url, animal) {
-    detailSpinner.style.display = 'none';
-    detailImage.onload = () => { detailImage.style.display = 'block'; };
-    detailImage.onerror = () => { showFallbackEmoji(LETTERS[currentIndex]); };
-    detailImage.alt = animal;
-    detailImage.src = url;
-  }
-
-  function showFallbackEmoji(letter) {
-    detailSpinner.style.display = 'none';
-    detailImage.style.display = 'none';
-    detailFallback.textContent = EMOJI_FALLBACKS[letter];
-    detailFallback.style.display = 'block';
-  }
-
-  // ============================================================
-  // WEB SPEECH API
-  // ============================================================
-
-  function speak(letter, animal) {
+  function speakSequence(phrases) {
     if (!('speechSynthesis' in window)) return;
     window.speechSynthesis.cancel();
-    const phrase = `${letter}. ${LETTER_SOUNDS[letter]}. ${letter} is for ${animal}!`;
-    const utterance = new SpeechSynthesisUtterance(phrase);
-    utterance.rate = 0.85;
-    utterance.pitch = 1.1;
-    utterance.lang = 'en-US';
-    window.speechSynthesis.speak(utterance);
+    speechTimeouts.forEach(t => clearTimeout(t));
+    speechTimeouts = [];
+
+    let cumulativeDelay = 0;
+
+    phrases.forEach((p, i) => {
+      cumulativeDelay += (p.delay || 0);
+      const delay = cumulativeDelay;
+
+      const tid = setTimeout(() => {
+        const u = createUtterance(p.text, {
+          rate: p.rate || 0.82,
+          pitch: p.pitch || 1.15,
+          volume: p.volume || 1.0
+        });
+        // Estimate duration for next delay: ~100ms per character at given rate
+        const estimatedDuration = (p.text.length * 100) / (p.rate || 0.82);
+        window.speechSynthesis.speak(u);
+
+        // If there's a next phrase without explicit delay, auto-space it
+        if (i < phrases.length - 1 && !phrases[i + 1].delay) {
+          phrases[i + 1].delay = estimatedDuration + 150;
+        }
+      }, delay);
+
+      speechTimeouts.push(tid);
+    });
+  }
+
+  /**
+   * Main letter introduction — sounds like a real teacher:
+   * "[pause] The letter A! ... ah ... A is for Alligator!"
+   *
+   * The key to sounding natural:
+   * - Vary the rate and pitch per phrase
+   * - Use real pauses (setTimeout) not speech queue
+   * - Add filler words ("The letter", "And") for flow
+   * - Slightly rise in pitch for excitement on the animal name
+   */
+  function speak(letter, d) {
+    speakSequence([
+      // "The letter A!"  — slow, warm, clear
+      { text: `The letter ${letter}!`, rate: 0.72, pitch: 1.18, delay: 200 },
+      // "ah" — the phonetic sound, slower and lower
+      { text: `${d.sound}`, rate: 0.65, pitch: 1.05, delay: 700 },
+      // "A is for Alligator!" — a bit faster, more excited
+      { text: `${letter} is for ${d.animal}!`, rate: 0.88, pitch: 1.22, delay: 800 },
+    ]);
+  }
+
+  /**
+   * General purpose speech — for quiz, sketch, animal sounds, etc.
+   * Uses a warm, slightly slow, friendly tone.
+   */
+  function speakText(text) {
+    if (!('speechSynthesis' in window)) return;
+    window.speechSynthesis.cancel();
+    speechTimeouts.forEach(t => clearTimeout(t));
+    speechTimeouts = [];
+    const u = createUtterance(text, { rate: 0.88, pitch: 1.15 });
+    window.speechSynthesis.speak(u);
+  }
+
+  /**
+   * Enthusiastic praise — for correct answers, sketch completion, etc.
+   * Slightly faster and higher pitched to convey excitement.
+   */
+  function speakPraise(text) {
+    if (!('speechSynthesis' in window)) return;
+    window.speechSynthesis.cancel();
+    speechTimeouts.forEach(t => clearTimeout(t));
+    speechTimeouts = [];
+    const u = createUtterance(text, { rate: 0.92, pitch: 1.25 });
+    window.speechSynthesis.speak(u);
+  }
+
+  /**
+   * Gentle correction — for wrong quiz answers.
+   * Slower, softer, encouraging tone.
+   */
+  function speakCorrection(text) {
+    if (!('speechSynthesis' in window)) return;
+    window.speechSynthesis.cancel();
+    speechTimeouts.forEach(t => clearTimeout(t));
+    speechTimeouts = [];
+    const u = createUtterance(text, { rate: 0.78, pitch: 1.08 });
+    window.speechSynthesis.speak(u);
   }
 
   // ============================================================
-  // DETAIL NAV — Previous / Next on detail page
+  // STAR BURST
+  // ============================================================
+
+  function spawnStarBurst() {
+    const emojis = ['⭐','🌟','✨','💫'];
+    for (let i = 0; i < 6; i++) {
+      const star = document.createElement('div');
+      star.classList.add('star-burst');
+      star.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+      star.style.left = (40 + Math.random() * 20) + '%';
+      star.style.top = (30 + Math.random() * 20) + '%';
+      star.style.animationDelay = (i * 0.08) + 's';
+      document.body.appendChild(star);
+      setTimeout(() => star.remove(), 1200);
+    }
+  }
+
+  // ============================================================
+  // DETAIL NAVIGATION
   // ============================================================
 
   function detailGoNext() {
     if (currentIndex >= 25) return;
-    currentIndex++;
-    animalRevealed = false;
-    updateDetail();
-    revealAnimal();
+    currentIndex++; showLetter(); revealAnimal(); playTapSound();
   }
 
   function detailGoPrev() {
     if (currentIndex <= 0) return;
-    currentIndex--;
-    animalRevealed = false;
-    updateDetail();
-    revealAnimal();
+    currentIndex--; showLetter(); revealAnimal(); playTapSound();
   }
 
   // ============================================================
-  // EVENT LISTENERS — Detail page
+  // DETAIL EVENT LISTENERS
   // ============================================================
 
-  // Nav arrow clicks (stop propagation so they don't trigger close/reveal)
-  detailPrev.addEventListener('click', (e) => {
-    e.stopPropagation();
-    detailGoPrev();
+  detailBackBtn.addEventListener('click', (e) => { e.stopPropagation(); playTapSound(); closeDetail(); });
+  detailPrev.addEventListener('click', (e) => { e.stopPropagation(); detailGoPrev(); });
+  detailNext.addEventListener('click', (e) => { e.stopPropagation(); detailGoNext(); });
+
+  btnHearAgain.addEventListener('click', (e) => {
+    e.stopPropagation(); playTapSound();
+    speak(LETTERS[currentIndex], DATA[LETTERS[currentIndex]]);
   });
 
-  detailNext.addEventListener('click', (e) => {
-    e.stopPropagation();
-    detailGoNext();
+  btnAnimalSound.addEventListener('click', (e) => {
+    e.stopPropagation(); playTapSound();
+    const d = DATA[LETTERS[currentIndex]];
+    speakText(`The ${d.animal} goes ${d.animalSound}`);
   });
 
-  // Tap on detail page: go back to home grid
-  detailPage.addEventListener('click', (e) => {
-    if (e.target.closest('.detail-nav')) return;
+  detailContent.addEventListener('click', (e) => {
+    if (e.target.closest('.action-btn')) return;
     closeDetail();
   });
 
   // ============================================================
-  // TOUCH / SWIPE on detail page
+  // DETAIL SWIPE
   // ============================================================
 
   (function setupDetailSwipe() {
-    let startX = 0;
-    let startY = 0;
-    let startTime = 0;
-    let swiping = false;
-
+    let startX = 0, startY = 0, startTime = 0, swiping = false;
     detailPage.addEventListener('touchstart', (e) => {
-      if (e.target.closest('.detail-nav')) return;
-      startX = e.touches[0].clientX;
-      startY = e.touches[0].clientY;
-      startTime = Date.now();
-      swiping = false;
+      if (e.target.closest('.detail-nav, .detail-back-btn, .action-btn')) return;
+      startX = e.touches[0].clientX; startY = e.touches[0].clientY;
+      startTime = Date.now(); swiping = false;
     }, { passive: true });
-
     detailPage.addEventListener('touchmove', (e) => {
       if (!startX) return;
       const dx = Math.abs(e.touches[0].clientX - startX);
       const dy = Math.abs(e.touches[0].clientY - startY);
       if (dx > 20 && dx > dy) swiping = true;
     }, { passive: true });
-
     detailPage.addEventListener('touchend', (e) => {
-      if (e.target.closest('.detail-nav')) return;
-      const endX = e.changedTouches[0].clientX;
-      const dx = endX - startX;
-      const elapsed = Date.now() - startTime;
-
-      if (swiping && Math.abs(dx) > 50 && elapsed < 500) {
-        // Swipe left = next, swipe right = prev
-        if (dx < 0) detailGoNext();
-        else detailGoPrev();
-        // Prevent the click handler from firing
+      if (e.target.closest('.detail-nav, .detail-back-btn, .action-btn')) return;
+      const dx = e.changedTouches[0].clientX - startX;
+      if (swiping && Math.abs(dx) > 50 && Date.now() - startTime < 500) {
+        if (dx < 0) detailGoNext(); else detailGoPrev();
         e.preventDefault();
       }
-      // Taps are handled by the click listener
-      startX = 0;
-      startY = 0;
-      swiping = false;
+      startX = 0; startY = 0; swiping = false;
     }, { passive: false });
   })();
 
   // ============================================================
-  // KEYBOARD NAV (works on detail page)
+  // KEYBOARD NAV
   // ============================================================
 
   document.addEventListener('keydown', (e) => {
-    if (detailPage.classList.contains('hidden')) return;
-
-    if (e.key === 'ArrowLeft') {
-      e.preventDefault();
-      detailGoPrev();
-    } else if (e.key === 'ArrowRight') {
-      e.preventDefault();
-      detailGoNext();
-    } else if (e.key === ' ' || e.key === 'Enter' || e.key === 'Escape') {
-      e.preventDefault();
-      closeDetail();
+    if (!detailPage.classList.contains('hidden')) {
+      if (e.key === 'ArrowLeft')  { e.preventDefault(); detailGoPrev(); }
+      else if (e.key === 'ArrowRight') { e.preventDefault(); detailGoNext(); }
+      else if (e.key === 'Escape' || e.key === ' ' || e.key === 'Enter') { e.preventDefault(); closeDetail(); }
     }
-    
   });
 
   // ============================================================
-  // CONFETTI — Triggered when reaching Z
+  // QUIZ MODE
+  // ============================================================
+
+  function startQuiz() {
+    quizLetters = [...LETTERS].sort(() => Math.random() - 0.5);
+    quizIndex = 0; quizScore = 0; quizStreak = 0;
+    showQuizQuestion();
+  }
+
+  function showQuizQuestion() {
+    if (quizIndex >= quizLetters.length) { showQuizComplete(); return; }
+
+    const letter = quizLetters[quizIndex];
+    const d = DATA[letter];
+    quizAnswered = false;
+
+    const wrongLetters = LETTERS.filter(l => l !== letter).sort(() => Math.random() - 0.5).slice(0, 3);
+    const choices = [letter, ...wrongLetters].sort(() => Math.random() - 0.5);
+
+    quizSection.innerHTML = `
+      <div class="quiz-score-bar">
+        <span>⭐ Score: ${quizScore}</span>
+        <span>🔥 Streak: ${quizStreak}</span>
+        <span>📝 ${quizIndex + 1} / 26</span>
+      </div>
+      <div class="quiz-prompt">
+        <div class="quiz-emoji">${d.emoji}</div>
+        <div class="quiz-question">Which letter is for <span class="animal-name">${d.animal}</span>?</div>
+      </div>
+      <div class="quiz-choices">
+        ${choices.map(c => `<button class="quiz-choice" style="background:${DATA[c].color}" data-letter="${c}">${c}</button>`).join('')}
+      </div>
+      <button class="quiz-skip" onclick="skipQuizQuestion()">Skip →</button>
+    `;
+
+    quizSection.querySelectorAll('.quiz-choice').forEach(btn => {
+      btn.addEventListener('click', () => handleQuizAnswer(btn, letter));
+    });
+
+    // Read the question aloud so toddlers can hear it
+    setTimeout(() => {
+      speakText(`Which letter is for ${d.animal}?`);
+    }, 300);
+  }
+
+  function handleQuizAnswer(btn, correctLetter) {
+    if (quizAnswered) return;
+    const chosen = btn.dataset.letter;
+
+    if (chosen === correctLetter) {
+      quizAnswered = true; quizScore++; quizStreak++;
+      btn.classList.add('correct');
+      playSuccessSound();
+      speakPraise(`Yes! Great job! ${correctLetter} is for ${DATA[correctLetter].animal}!`);
+      visitedLetters.add(correctLetter);
+      updateProgress();
+      setTimeout(() => { quizIndex++; showQuizQuestion(); }, 2500);
+    } else {
+      quizAnswered = true; quizStreak = 0;
+      btn.classList.add('wrong');
+      playWrongSound();
+      setTimeout(() => {
+        quizSection.querySelectorAll('.quiz-choice').forEach(b => {
+          if (b.dataset.letter === correctLetter) b.classList.add('correct');
+        });
+        speakCorrection(`Oops! Not quite. The answer is ${correctLetter}. ${correctLetter} is for ${DATA[correctLetter].animal}.`);
+      }, 500);
+      setTimeout(() => { quizIndex++; showQuizQuestion(); }, 3500);
+    }
+  }
+
+  function skipQuizQuestion() {
+    quizStreak = 0; quizIndex++; showQuizQuestion(); playTapSound();
+  }
+
+  function showQuizComplete() {
+    const pct = Math.round((quizScore / 26) * 100);
+    let message = '', trophy = '🏆';
+    if (pct === 100)     { message = "PERFECT SCORE! You're an alphabet genius!"; trophy = '👑'; }
+    else if (pct >= 80)  { message = "Amazing job! You really know your letters!"; }
+    else if (pct >= 50)  { message = "Great work! Keep practicing!"; }
+    else                 { message = "Good try! Let's learn more letters!"; }
+
+    quizSection.innerHTML = `
+      <div class="quiz-complete">
+        <div class="trophy">${trophy}</div>
+        <h2>Quiz Complete!</h2>
+        <p>${message}<br>You got <strong>${quizScore} / 26</strong> correct!</p>
+        <button onclick="startQuiz()">🔄 Play Again</button>
+      </div>
+    `;
+
+    if (pct >= 80) { playSuccessSound(); launchConfetti(); }
+
+    // Read the completion message aloud
+    setTimeout(() => {
+      speakPraise(message + ` You got ${quizScore} out of 26 correct!`);
+    }, 400);
+  }
+
+  // ============================================================
+  // CONFETTI
   // ============================================================
 
   function launchConfetti() {
-    const colors = [
-      '#FF6B6B','#4ECDC4','#45B7D1','#96CEB4',
-      '#FFEAA7','#DDA0DD','#98D8C8','#F7DC6F',
-      '#BB8FCE','#85C1E9','#F0B27A','#82E0AA'
-    ];
-
-    for (let i = 0; i < 100; i++) {
+    const colors = ['#FF6B6B','#4ECDC4','#45B7D1','#96CEB4','#FFEAA7','#DDA0DD','#98D8C8','#F7DC6F','#BB8FCE','#85C1E9','#F0B27A','#82E0AA'];
+    for (let i = 0; i < 80; i++) {
       const piece = document.createElement('div');
       piece.classList.add('confetti-piece');
       const color = colors[Math.floor(Math.random() * colors.length)];
       const left = Math.random() * 100;
-      const size = Math.random() * 8 + 6;
+      const size = Math.random() * 8 + 5;
       const duration = Math.random() * 2 + 2;
       const delay = Math.random() * 1.5;
-      piece.style.cssText = `
-        left:${left}%;
-        width:${size}px;
-        height:${size}px;
-        background:${color};
-        animation-duration:${duration}s;
-        animation-delay:${delay}s;
-        border-radius:${Math.random() > 0.5 ? '50%' : '2px'};
-      `;
+      piece.style.cssText = `left:${left}%;width:${size}px;height:${size}px;background:${color};animation-duration:${duration}s;animation-delay:${delay}s;border-radius:${Math.random()>0.5?'50%':'2px'};`;
       document.body.appendChild(piece);
       setTimeout(() => piece.remove(), (duration + delay) * 1000 + 100);
     }
@@ -835,7 +2224,8 @@
   // ============================================================
 
   buildGrid();
+  createBubbles();
+  updateProgress();
 </script>
-
 </body>
 </html>
