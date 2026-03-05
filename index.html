@@ -232,15 +232,17 @@
     .sketch-guide-letter {
       position: absolute; inset: 0;
       display: flex; align-items: center; justify-content: center;
-      font-weight: 900; color: rgba(0,0,0,0.06);
+      font-weight: 500; color: rgba(0,0,0,0.08);
       font-size: min(60vw, 280px); line-height: 1;
       pointer-events: none; z-index: 1;
-      transition: color 0.3s ease;
+      transition: all 0.3s ease;
     }
 
-    .sketch-guide-letter.lowercase { font-size: min(55vw, 260px); }
+    .sketch-guide-letter.lowercase { font-size: min(55vw, 260px); font-weight: 500; }
 
-    .sketch-guide-letter.verified-glow { color: rgba(78, 205, 196, 0.15); }
+    .sketch-guide-letter.verified-glow {
+      color: rgba(78, 205, 196, 0.15);
+    }
 
     /* The actual drawing canvas */
     .sketch-canvas {
@@ -975,14 +977,14 @@
   let sketchCompletedSet = new Set();   // Letters successfully traced
   let sketchCase = 'upper';
   let sketchColor = '#FF6B6B';
-  let sketchLineWidth = 22;
+  let sketchLineWidth = 30;
   let sketchIsDrawing = false;
   let sketchPaths = [];
   let sketchCurrentPath = [];
   let sketchCelebrated = false;         // Prevents double-celebration per letter
 
   // Coverage verification
-  const COVERAGE_THRESHOLD = 0.70;       // 70% coverage required — trace most of the letter!
+  const COVERAGE_THRESHOLD = 0.65;       // 70% coverage required — trace most of the letter!
   let cachedGuideData = null;            // Cached guide letter pixel data
   let cachedGuideKey = '';               // Cache key (letter + case)
 
@@ -1341,6 +1343,7 @@
       btn.classList.add('sketch-color-btn');
       if (c.color === sketchColor) btn.classList.add('active');
       btn.style.background = c.color;
+      btn.dataset.color = c.color;
       btn.title = c.name;
       btn.addEventListener('click', () => {
         sketchColor = c.color;
@@ -1451,6 +1454,29 @@
     });
   }
 
+  /** Randomize the crayon color for the next letter */
+  function randomizeSketchColor() {
+    const colors = ['#FF6B6B','#FF9F43','#FECA57','#48DBFB','#1DD1A1','#BB8FCE','#FF6FA7','#333333'];
+    // Pick a random color that's different from the current one
+    let newColor;
+    do {
+      newColor = colors[Math.floor(Math.random() * colors.length)];
+    } while (newColor === sketchColor && colors.length > 1);
+
+    sketchColor = newColor;
+
+    // Update the toolbar buttons visually using data-color attribute
+    const toolbar = document.getElementById('sketchToolbar');
+    if (toolbar) {
+      toolbar.querySelectorAll('.sketch-color-btn').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.dataset.color === sketchColor) {
+          btn.classList.add('active');
+        }
+      });
+    }
+  }
+
   /** Skip current letter and move to next */
   function skipSketchLetter() {
     playTapSound();
@@ -1472,6 +1498,7 @@
       sketchShuffledLetters = shuffleArray(remaining);
       sketchQueueIndex = 0;
     }
+    randomizeSketchColor();
     updateSketchUI();
     clearSketch();
   }
@@ -1525,20 +1552,24 @@
     const ctx = off.getContext('2d');
     ctx.scale(dpr, dpr);
 
-    // Match the visual guide letter's font size
+    // Match the visual guide letter's font size and thin weight
     const computedSize = parseFloat(getComputedStyle(sketchGuideLetter).fontSize) || rect.width * 0.65;
     const fontFamily = getComputedStyle(sketchGuideLetter).fontFamily || 'system-ui, sans-serif';
 
-    ctx.fillStyle = '#000';
-    ctx.font = `900 ${computedSize}px ${fontFamily}`;
+    // Use font-weight 500 to match the visible guide letter
+    ctx.font = `500 ${computedSize}px ${fontFamily}`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
+
+    // Fill the letter shape (matches the visible CSS guide)
+    ctx.fillStyle = '#000';
     ctx.fillText(displayLetter, rect.width / 2, rect.height / 2);
 
-    // Stroke with extra-generous width for forgiveness (toddler-friendly)
+    // Add a moderate stroke around it for a forgiving hit zone
     ctx.strokeStyle = '#000';
-    ctx.lineWidth = 20;
+    ctx.lineWidth = 12;
     ctx.lineJoin = 'round';
+    ctx.lineCap = 'round';
     ctx.strokeText(displayLetter, rect.width / 2, rect.height / 2);
 
     cachedGuideData = ctx.getImageData(0, 0, w, h);
@@ -1618,10 +1649,10 @@
     } else if (pct < 45) {
       sketchFeedback.textContent = 'Halfway there! You can do it! 💪';
       sketchFeedback.className = 'sketch-feedback encouraging';
-    } else if (pct < 60) {
+    } else if (pct < 55) {
       sketchFeedback.textContent = 'Looking great! A little more! 🌟';
       sketchFeedback.className = 'sketch-feedback almost';
-    } else if (pct < 70) {
+    } else if (pct < 65) {
       sketchFeedback.textContent = 'So close! Almost done! ⭐';
       sketchFeedback.className = 'sketch-feedback almost';
     } else {
