@@ -982,7 +982,7 @@
   let sketchCelebrated = false;         // Prevents double-celebration per letter
 
   // Coverage verification
-  const COVERAGE_THRESHOLD = 0.20;       // 20% coverage required to pass (toddler-friendly!)
+  const COVERAGE_THRESHOLD = 0.80;       // 80% coverage required — must trace the full letter!
   let cachedGuideData = null;            // Cached guide letter pixel data
   let cachedGuideKey = '';               // Cache key (letter + case)
 
@@ -1605,19 +1605,24 @@
   /** Update the feedback message based on coverage */
   function updateFeedbackMessage(coverage) {
     const pct = coverage * 100;
-    const threshPct = COVERAGE_THRESHOLD * 100;
 
-    if (pct < 10) {
+    if (pct < 5) {
       sketchFeedback.textContent = 'Trace over the letter! 🖐️';
       sketchFeedback.className = 'sketch-feedback';
-    } else if (pct < threshPct * 0.5) {
-      sketchFeedback.textContent = 'Keep going! You got this! ✏️';
+    } else if (pct < 20) {
+      sketchFeedback.textContent = 'Good start! Keep tracing! ✏️';
       sketchFeedback.className = 'sketch-feedback encouraging';
-    } else if (pct < threshPct * 0.85) {
-      sketchFeedback.textContent = 'Getting closer! Almost there! 🌟';
+    } else if (pct < 40) {
+      sketchFeedback.textContent = 'Nice work! Keep going! 🖍️';
+      sketchFeedback.className = 'sketch-feedback encouraging';
+    } else if (pct < 55) {
+      sketchFeedback.textContent = 'Halfway there! You can do it! 💪';
+      sketchFeedback.className = 'sketch-feedback encouraging';
+    } else if (pct < 70) {
+      sketchFeedback.textContent = 'Looking great! A little more! 🌟';
       sketchFeedback.className = 'sketch-feedback almost';
-    } else if (pct < threshPct) {
-      sketchFeedback.textContent = 'So close! Just a little more! ⭐';
+    } else if (pct < 80) {
+      sketchFeedback.textContent = 'So close! Almost done! ⭐';
       sketchFeedback.className = 'sketch-feedback almost';
     } else {
       sketchFeedback.textContent = '';
