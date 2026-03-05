@@ -982,7 +982,7 @@
   let sketchCelebrated = false;         // Prevents double-celebration per letter
 
   // Coverage verification
-  const COVERAGE_THRESHOLD = 0.80;       // 80% coverage required — must trace the full letter!
+  const COVERAGE_THRESHOLD = 0.70;       // 70% coverage required — trace most of the letter!
   let cachedGuideData = null;            // Cached guide letter pixel data
   let cachedGuideKey = '';               // Cache key (letter + case)
 
@@ -1537,7 +1537,7 @@
 
     // Stroke with extra-generous width for forgiveness (toddler-friendly)
     ctx.strokeStyle = '#000';
-    ctx.lineWidth = 35;
+    ctx.lineWidth = 20;
     ctx.lineJoin = 'round';
     ctx.strokeText(displayLetter, rect.width / 2, rect.height / 2);
 
@@ -1609,19 +1609,19 @@
     if (pct < 5) {
       sketchFeedback.textContent = 'Trace over the letter! 🖐️';
       sketchFeedback.className = 'sketch-feedback';
-    } else if (pct < 20) {
+    } else if (pct < 15) {
       sketchFeedback.textContent = 'Good start! Keep tracing! ✏️';
       sketchFeedback.className = 'sketch-feedback encouraging';
-    } else if (pct < 40) {
+    } else if (pct < 30) {
       sketchFeedback.textContent = 'Nice work! Keep going! 🖍️';
       sketchFeedback.className = 'sketch-feedback encouraging';
-    } else if (pct < 55) {
+    } else if (pct < 45) {
       sketchFeedback.textContent = 'Halfway there! You can do it! 💪';
       sketchFeedback.className = 'sketch-feedback encouraging';
-    } else if (pct < 70) {
+    } else if (pct < 60) {
       sketchFeedback.textContent = 'Looking great! A little more! 🌟';
       sketchFeedback.className = 'sketch-feedback almost';
-    } else if (pct < 80) {
+    } else if (pct < 70) {
       sketchFeedback.textContent = 'So close! Almost done! ⭐';
       sketchFeedback.className = 'sketch-feedback almost';
     } else {
