@@ -742,6 +742,174 @@
       box-shadow: 0 4px 15px rgba(255,107,107,0.3);
     }
 
+    /* ===== STICKER BOOK ===== */
+    .sticker-section {
+      width: 100%; max-width: 500px;
+      display: flex; flex-direction: column; align-items: center;
+      position: relative; z-index: 2;
+    }
+
+    .sticker-section.hidden { display: none; }
+
+    .sticker-header { text-align: center; margin-bottom: 0.5rem; }
+
+    .sticker-title {
+      font-size: clamp(1rem, 3vw, 1.3rem); font-weight: 800; color: #444;
+    }
+
+    .sticker-subtitle {
+      font-size: clamp(0.65rem, 1.8vw, 0.8rem); color: #999; font-weight: 600;
+    }
+
+    /* Scene selector buttons */
+    .scene-selector {
+      display: flex; gap: 4px; flex-wrap: wrap; justify-content: center;
+      margin-bottom: 0.5rem;
+    }
+
+    .scene-btn {
+      padding: 5px 10px; border: 2px solid transparent;
+      border-radius: 10px; background: rgba(0,0,0,0.04);
+      font-size: clamp(0.6rem, 1.6vw, 0.75rem); font-weight: 700;
+      color: #888; cursor: pointer; transition: all 0.2s;
+    }
+
+    .scene-btn:hover { background: rgba(0,0,0,0.08); }
+    .scene-btn:active { transform: scale(0.95); }
+
+    .scene-btn.active {
+      background: white; color: #444;
+      border-color: rgba(0,0,0,0.1);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+
+    /* Sticker canvas area */
+    .sticker-canvas-area {
+      width: min(92vw, 480px); height: min(60vw, 320px);
+      border-radius: 20px; overflow: hidden;
+      position: relative; cursor: pointer;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+      margin-bottom: 0.5rem;
+      transition: background 0.5s ease;
+      touch-action: none;
+    }
+
+    .sticker-scene-bg {
+      position: absolute; inset: 0; z-index: 0;
+      transition: all 0.5s ease;
+    }
+
+    .sticker-scene-bg .scene-deco {
+      position: absolute; font-size: clamp(1.2rem, 3.5vw, 2rem);
+      opacity: 0.5; pointer-events: none;
+      animation: scene-sway 5s ease-in-out infinite alternate;
+    }
+
+    .sticker-placed-layer {
+      position: absolute; inset: 0; z-index: 2;
+    }
+
+    .sticker-empty-hint {
+      position: absolute; inset: 0; z-index: 1;
+      display: flex; align-items: center; justify-content: center;
+      font-size: clamp(0.7rem, 2vw, 0.9rem);
+      color: rgba(255,255,255,0.6); font-weight: 700;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .sticker-empty-hint.hidden { opacity: 0; }
+
+    /* Placed sticker items */
+    .placed-sticker {
+      position: absolute; z-index: 3;
+      font-size: clamp(2rem, 6vw, 3rem);
+      cursor: grab; user-select: none;
+      transform: translate(-50%, -50%) scale(0);
+      animation: sticker-pop 0.4s cubic-bezier(0.34,1.56,0.64,1) forwards;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15));
+      transition: filter 0.2s;
+    }
+
+    .placed-sticker:active {
+      cursor: grabbing;
+      filter: drop-shadow(0 4px 8px rgba(0,0,0,0.25));
+    }
+
+    .placed-sticker.wiggle {
+      animation: sticker-wiggle 0.3s ease;
+    }
+
+    @keyframes sticker-pop {
+      0% { transform: translate(-50%, -50%) scale(0) rotate(-15deg); }
+      60% { transform: translate(-50%, -50%) scale(1.2) rotate(5deg); }
+      100% { transform: translate(-50%, -50%) scale(1) rotate(0deg); }
+    }
+
+    @keyframes sticker-wiggle {
+      0%, 100% { transform: translate(-50%, -50%) scale(1) rotate(0deg); }
+      25% { transform: translate(-50%, -50%) scale(1.1) rotate(-5deg); }
+      75% { transform: translate(-50%, -50%) scale(1.1) rotate(5deg); }
+    }
+
+    /* Action bar */
+    .sticker-actions {
+      display: flex; gap: 8px; align-items: center;
+      justify-content: center; margin-bottom: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .sticker-count {
+      font-size: clamp(0.6rem, 1.6vw, 0.75rem);
+      font-weight: 700; color: #aaa;
+      background: rgba(0,0,0,0.04);
+      padding: 4px 12px; border-radius: 12px;
+    }
+
+    /* Animal sticker tray */
+    .sticker-tray {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: clamp(4px, 1vw, 8px);
+      width: 100%; max-width: 480px;
+      padding: 0.3rem;
+    }
+
+    .sticker-tray-item {
+      aspect-ratio: 1; border-radius: clamp(8px, 2vw, 14px);
+      border: 2px solid transparent;
+      background: rgba(0,0,0,0.03);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      cursor: pointer; transition: all 0.2s ease;
+      gap: 1px;
+    }
+
+    .sticker-tray-item:hover {
+      background: rgba(0,0,0,0.06);
+      transform: scale(1.08);
+    }
+
+    .sticker-tray-item:active { transform: scale(0.92); }
+
+    .sticker-tray-item.selected {
+      border-color: #FF6B6B;
+      background: rgba(255,107,107,0.08);
+      transform: scale(1.1);
+      box-shadow: 0 2px 10px rgba(255,107,107,0.2);
+    }
+
+    .sticker-tray-item .tray-emoji {
+      font-size: clamp(1.1rem, 3.5vw, 1.6rem); line-height: 1;
+    }
+
+    .sticker-tray-item .tray-label {
+      font-size: clamp(0.35rem, 1vw, 0.5rem);
+      font-weight: 700; color: rgba(0,0,0,0.3);
+      text-transform: uppercase; letter-spacing: 0.02em;
+    }
+
     /* ===== RESPONSIVE ===== */
     @media (min-width: 500px) { .letter-grid { grid-template-columns: repeat(5, 1fr); } }
     @media (min-width: 700px) {
@@ -792,6 +960,7 @@
     <button class="tab-btn active" id="tabLetters" onclick="switchTab('letters')">🔤 Letters</button>
     <button class="tab-btn" id="tabSketch" onclick="switchTab('sketch')">✏️ Sketch</button>
     <button class="tab-btn" id="tabQuiz" onclick="switchTab('quiz')">🎮 Quiz</button>
+    <button class="tab-btn" id="tabStickers" onclick="switchTab('stickers')">🖼️ Stickers</button>
   </div>
 
   <!-- Letter Grid -->
@@ -857,6 +1026,44 @@
 
   <!-- Quiz Section -->
   <div class="quiz-section hidden" id="quizSection"></div>
+
+  <!-- ===== STICKER BOOK SECTION ===== -->
+  <div class="sticker-section hidden" id="stickerSection">
+    <div class="sticker-header">
+      <div class="sticker-title">🖼️ My Animal World</div>
+      <div class="sticker-subtitle">Pick a scene, then tap animals to place them!</div>
+    </div>
+
+    <!-- Scene selector -->
+    <div class="scene-selector" id="sceneSelector">
+      <button class="scene-btn active" data-scene="farm" onclick="selectScene('farm')">🌾 Farm</button>
+      <button class="scene-btn" data-scene="zoo" onclick="selectScene('zoo')">🦁 Zoo</button>
+      <button class="scene-btn" data-scene="ocean" onclick="selectScene('ocean')">🌊 Ocean</button>
+      <button class="scene-btn" data-scene="jungle" onclick="selectScene('jungle')">🌴 Jungle</button>
+      <button class="scene-btn" data-scene="arctic" onclick="selectScene('arctic')">❄️ Arctic</button>
+      <button class="scene-btn" data-scene="savanna" onclick="selectScene('savanna')">☀️ Savanna</button>
+    </div>
+
+    <!-- Sticker canvas area -->
+    <div class="sticker-canvas-area" id="stickerCanvasArea">
+      <!-- Background scene decorations rendered here -->
+      <div class="sticker-scene-bg" id="stickerSceneBg"></div>
+      <!-- Placed stickers rendered here -->
+      <div class="sticker-placed-layer" id="stickerPlacedLayer"></div>
+      <!-- Empty state hint -->
+      <div class="sticker-empty-hint" id="stickerEmptyHint">👆 Tap an animal below to place it here!</div>
+    </div>
+
+    <!-- Sticker action bar -->
+    <div class="sticker-actions">
+      <button class="sketch-action-btn" onclick="undoSticker()">↩️ Undo</button>
+      <button class="sketch-action-btn" onclick="clearStickers()">🗑️ Clear All</button>
+      <span class="sticker-count" id="stickerCount">🐾 0 animals placed</span>
+    </div>
+
+    <!-- Animal sticker tray -->
+    <div class="sticker-tray" id="stickerTray"></div>
+  </div>
 </div>
 
 <!-- ===== DETAIL PAGE ===== -->
@@ -1237,13 +1444,16 @@
     document.getElementById('tabLetters').classList.toggle('active', tab === 'letters');
     document.getElementById('tabSketch').classList.toggle('active', tab === 'sketch');
     document.getElementById('tabQuiz').classList.toggle('active', tab === 'quiz');
+    document.getElementById('tabStickers').classList.toggle('active', tab === 'stickers');
 
     letterGrid.style.display = tab === 'letters' ? '' : 'none';
     sketchSection.classList.toggle('hidden', tab !== 'sketch');
     quizSection.classList.toggle('hidden', tab !== 'quiz');
+    stickerSection.classList.toggle('hidden', tab !== 'stickers');
 
     if (tab === 'sketch') initSketch();
     if (tab === 'quiz') startQuiz();
+    if (tab === 'stickers') initStickerBook();
 
     playTapSound();
   }
@@ -2251,6 +2461,360 @@
     setTimeout(() => {
       speakPraise(message + ` You got ${quizScore} out of 26 correct!`);
     }, 400);
+  }
+
+  // ============================================================
+  // STICKER BOOK
+  // ============================================================
+
+  const stickerSection = document.getElementById('stickerSection');
+  const stickerCanvasArea = document.getElementById('stickerCanvasArea');
+  const stickerSceneBg = document.getElementById('stickerSceneBg');
+  const stickerPlacedLayer = document.getElementById('stickerPlacedLayer');
+  const stickerEmptyHint = document.getElementById('stickerEmptyHint');
+  const stickerTray = document.getElementById('stickerTray');
+  const stickerCountEl = document.getElementById('stickerCount');
+
+  let currentScene = 'farm';
+  let selectedSticker = null; // { letter, emoji, animal }
+  let placedStickers = []; // Array of { el, letter, emoji, x, y }
+  let stickerBookInitialized = false;
+
+  // Scene definitions — background gradients + decorative elements
+  const SCENES = {
+    farm: {
+      name: 'Farm',
+      sky: 'linear-gradient(180deg, #87CEEB 0%, #B0D4F0 55%, #7EC87E 55%, #5CA85C 100%)',
+      decos: [
+        { emoji: '🏠', left: '8%', bottom: '46%' },
+        { emoji: '🌻', left: '22%', bottom: '42%' },
+        { emoji: '🌾', left: '40%', bottom: '40%' },
+        { emoji: '⛅', left: '60%', top: '8%' },
+        { emoji: '🌾', right: '20%', bottom: '42%' },
+        { emoji: '🏡', right: '6%', bottom: '46%' },
+        { emoji: '🌳', left: '75%', bottom: '44%' },
+        { emoji: '🌸', left: '50%', bottom: '38%' },
+      ]
+    },
+    zoo: {
+      name: 'Zoo',
+      sky: 'linear-gradient(180deg, #87CEEB 0%, #A8D5BA 50%, #8BC48B 50%, #6AAA4A 100%)',
+      decos: [
+        { emoji: '🌳', left: '5%', bottom: '48%' },
+        { emoji: '🪨', left: '18%', bottom: '40%' },
+        { emoji: '🌿', left: '35%', bottom: '42%' },
+        { emoji: '☀️', right: '15%', top: '6%' },
+        { emoji: '🌲', right: '8%', bottom: '48%' },
+        { emoji: '🪵', left: '55%', bottom: '38%' },
+        { emoji: '🌳', right: '25%', bottom: '46%' },
+        { emoji: '🦋', left: '45%', top: '18%' },
+      ]
+    },
+    ocean: {
+      name: 'Ocean',
+      sky: 'linear-gradient(180deg, #87CEEB 0%, #5BA3CF 35%, #3A8ABF 35%, #1A6A9F 70%, #0D4A7A 100%)',
+      decos: [
+        { emoji: '☁️', left: '15%', top: '5%' },
+        { emoji: '☁️', right: '20%', top: '8%' },
+        { emoji: '🌊', left: '5%', bottom: '60%' },
+        { emoji: '🌊', right: '10%', bottom: '58%' },
+        { emoji: '🪸', left: '15%', bottom: '8%' },
+        { emoji: '🐚', left: '40%', bottom: '5%' },
+        { emoji: '🪸', right: '20%', bottom: '10%' },
+        { emoji: '🫧', left: '60%', bottom: '35%' },
+      ]
+    },
+    jungle: {
+      name: 'Jungle',
+      sky: 'linear-gradient(180deg, #4A9A6A 0%, #3A8A5A 30%, #2D7A4A 30%, #1A5A2A 100%)',
+      decos: [
+        { emoji: '🌴', left: '3%', bottom: '55%' },
+        { emoji: '🌿', left: '18%', bottom: '48%' },
+        { emoji: '🌺', left: '35%', bottom: '44%' },
+        { emoji: '🌴', right: '5%', bottom: '55%' },
+        { emoji: '🦜', right: '18%', top: '12%' },
+        { emoji: '🍌', left: '55%', bottom: '50%' },
+        { emoji: '🌿', right: '30%', bottom: '46%' },
+        { emoji: '🌸', left: '70%', bottom: '42%' },
+      ]
+    },
+    arctic: {
+      name: 'Arctic',
+      sky: 'linear-gradient(180deg, #B0D0E8 0%, #D0E8F0 40%, #E8F4FA 40%, #F0F8FF 100%)',
+      decos: [
+        { emoji: '🧊', left: '8%', bottom: '45%' },
+        { emoji: '❄️', left: '25%', top: '10%' },
+        { emoji: '⛄', left: '40%', bottom: '40%' },
+        { emoji: '❄️', right: '25%', top: '15%' },
+        { emoji: '🧊', right: '10%', bottom: '42%' },
+        { emoji: '🌨️', left: '60%', top: '5%' },
+        { emoji: '🏔️', left: '65%', bottom: '46%' },
+        { emoji: '❄️', left: '50%', top: '22%' },
+      ]
+    },
+    savanna: {
+      name: 'Savanna',
+      sky: 'linear-gradient(180deg, #F0A840 0%, #FFEAA7 45%, #C8A84E 45%, #A08030 100%)',
+      decos: [
+        { emoji: '🌴', left: '6%', bottom: '50%' },
+        { emoji: '🌾', left: '22%', bottom: '42%' },
+        { emoji: '☀️', left: '50%', top: '5%' },
+        { emoji: '🌾', right: '15%', bottom: '44%' },
+        { emoji: '🌴', right: '5%', bottom: '48%' },
+        { emoji: '🌅', left: '35%', bottom: '46%' },
+        { emoji: '🌿', left: '60%', bottom: '40%' },
+        { emoji: '🪨', right: '30%', bottom: '38%' },
+      ]
+    }
+  };
+
+  /** Initialize the sticker book (only builds tray once) */
+  function initStickerBook() {
+    if (!stickerBookInitialized) {
+      buildStickerTray();
+      stickerBookInitialized = true;
+    }
+    renderScene(currentScene);
+  }
+
+  /** Build the animal sticker tray at the bottom */
+  function buildStickerTray() {
+    stickerTray.innerHTML = '';
+    LETTERS.forEach(letter => {
+      const d = DATA[letter];
+      const item = document.createElement('div');
+      item.classList.add('sticker-tray-item');
+      item.dataset.letter = letter;
+      item.innerHTML = `
+        <span class="tray-emoji">${d.emoji}</span>
+        <span class="tray-label">${d.animal.split(' ')[0]}</span>
+      `;
+      item.addEventListener('click', (e) => {
+        e.stopPropagation();
+        selectStickerFromTray(letter, item);
+      });
+      stickerTray.appendChild(item);
+    });
+  }
+
+  /** Select a sticker from the tray */
+  function selectStickerFromTray(letter, itemEl) {
+    const d = DATA[letter];
+
+    // Toggle selection
+    if (selectedSticker && selectedSticker.letter === letter) {
+      // Deselect
+      selectedSticker = null;
+      stickerTray.querySelectorAll('.sticker-tray-item').forEach(el => el.classList.remove('selected'));
+      return;
+    }
+
+    selectedSticker = { letter, emoji: d.emoji, animal: d.animal };
+
+    // Highlight selected
+    stickerTray.querySelectorAll('.sticker-tray-item').forEach(el => el.classList.remove('selected'));
+    itemEl.classList.add('selected');
+
+    // Speak the animal name
+    speakText(`${d.animal}!`);
+    playTapSound();
+  }
+
+  /** Select a background scene */
+  function selectScene(sceneName) {
+    currentScene = sceneName;
+
+    // Update active button
+    document.querySelectorAll('.scene-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.scene === sceneName);
+    });
+
+    // Clear all placed stickers when switching scenes
+    clearStickers();
+
+    renderScene(sceneName);
+    playTapSound();
+  }
+
+  /** Render the selected scene background */
+  function renderScene(sceneName) {
+    const scene = SCENES[sceneName];
+    stickerSceneBg.style.background = scene.sky;
+    stickerSceneBg.innerHTML = '';
+
+    scene.decos.forEach((deco, i) => {
+      const el = document.createElement('div');
+      el.classList.add('scene-deco');
+      el.textContent = deco.emoji;
+      if (deco.left) el.style.left = deco.left;
+      if (deco.right) el.style.right = deco.right;
+      if (deco.top) el.style.top = deco.top;
+      if (deco.bottom) el.style.bottom = deco.bottom;
+      el.style.animationDelay = (i * 0.7) + 's';
+      stickerSceneBg.appendChild(el);
+    });
+  }
+
+  /** Place a sticker on the canvas area */
+  function placeSticker(x, y) {
+    if (!selectedSticker) return;
+
+    const d = DATA[selectedSticker.letter];
+
+    // Create sticker element
+    const stickerEl = document.createElement('div');
+    stickerEl.classList.add('placed-sticker');
+    stickerEl.textContent = selectedSticker.emoji;
+    stickerEl.style.left = x + '%';
+    stickerEl.style.top = y + '%';
+
+    // Store reference
+    const stickerData = {
+      el: stickerEl,
+      letter: selectedSticker.letter,
+      emoji: selectedSticker.emoji,
+      x, y
+    };
+    placedStickers.push(stickerData);
+
+    stickerPlacedLayer.appendChild(stickerEl);
+
+    // Hide empty hint
+    stickerEmptyHint.classList.add('hidden');
+
+    // Update count
+    updateStickerCount();
+
+    // Sound + speak
+    playTapSound();
+    speakText(`${d.animal}!`);
+
+    // Enable dragging on this sticker
+    enableStickerDrag(stickerEl, stickerData);
+  }
+
+  /** Enable drag on a placed sticker (touch + mouse) */
+  function enableStickerDrag(el, stickerData) {
+    let isDragging = false;
+    let startX, startY, origLeft, origTop;
+
+    function onStart(e) {
+      e.stopPropagation();
+      e.preventDefault();
+      isDragging = true;
+      const rect = stickerCanvasArea.getBoundingClientRect();
+      const touch = e.touches ? e.touches[0] : e;
+
+      origLeft = parseFloat(el.style.left);
+      origTop = parseFloat(el.style.top);
+      startX = touch.clientX;
+      startY = touch.clientY;
+
+      el.style.zIndex = 10;
+      el.style.transition = 'none';
+
+      // Wiggle animation
+      el.classList.remove('wiggle');
+      void el.offsetWidth;
+      el.classList.add('wiggle');
+    }
+
+    function onMove(e) {
+      if (!isDragging) return;
+      e.preventDefault();
+      const rect = stickerCanvasArea.getBoundingClientRect();
+      const touch = e.touches ? e.touches[0] : e;
+
+      const dx = ((touch.clientX - startX) / rect.width) * 100;
+      const dy = ((touch.clientY - startY) / rect.height) * 100;
+
+      const newLeft = Math.max(5, Math.min(95, origLeft + dx));
+      const newTop = Math.max(5, Math.min(95, origTop + dy));
+
+      el.style.left = newLeft + '%';
+      el.style.top = newTop + '%';
+    }
+
+    function onEnd() {
+      if (!isDragging) return;
+      isDragging = false;
+      el.style.zIndex = 3;
+      el.style.transition = '';
+
+      // Update stored position
+      stickerData.x = parseFloat(el.style.left);
+      stickerData.y = parseFloat(el.style.top);
+    }
+
+    el.addEventListener('touchstart', onStart, { passive: false });
+    el.addEventListener('touchmove', onMove, { passive: false });
+    el.addEventListener('touchend', onEnd);
+    el.addEventListener('touchcancel', onEnd);
+    el.addEventListener('mousedown', onStart);
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onEnd);
+  }
+
+  /** Handle tap on the sticker canvas area */
+  stickerCanvasArea.addEventListener('click', (e) => {
+    // Don't place if tapping on an existing sticker
+    if (e.target.classList.contains('placed-sticker')) return;
+    if (!selectedSticker) return;
+
+    const rect = stickerCanvasArea.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+
+    // Clamp to keep stickers inside the area
+    const cx = Math.max(8, Math.min(92, x));
+    const cy = Math.max(8, Math.min(92, y));
+
+    placeSticker(cx, cy);
+  });
+
+  // Touch tap for placing stickers (handle separately from drag)
+  stickerCanvasArea.addEventListener('touchend', (e) => {
+    if (e.target.classList.contains('placed-sticker')) return;
+    if (!selectedSticker) return;
+    if (e.changedTouches.length === 0) return;
+
+    const touch = e.changedTouches[0];
+    const rect = stickerCanvasArea.getBoundingClientRect();
+    const x = ((touch.clientX - rect.left) / rect.width) * 100;
+    const y = ((touch.clientY - rect.top) / rect.height) * 100;
+
+    const cx = Math.max(8, Math.min(92, x));
+    const cy = Math.max(8, Math.min(92, y));
+
+    placeSticker(cx, cy);
+  }, { passive: true });
+
+  /** Undo the last placed sticker */
+  function undoSticker() {
+    if (placedStickers.length === 0) return;
+    const last = placedStickers.pop();
+    last.el.remove();
+    updateStickerCount();
+    playTapSound();
+
+    if (placedStickers.length === 0) {
+      stickerEmptyHint.classList.remove('hidden');
+    }
+  }
+
+  /** Clear all placed stickers */
+  function clearStickers() {
+    placedStickers.forEach(s => s.el.remove());
+    placedStickers = [];
+    updateStickerCount();
+    stickerEmptyHint.classList.remove('hidden');
+    playTapSound();
+  }
+
+  /** Update the placed sticker count display */
+  function updateStickerCount() {
+    const count = placedStickers.length;
+    stickerCountEl.textContent = `🐾 ${count} animal${count !== 1 ? 's' : ''} placed`;
   }
 
   // ============================================================
