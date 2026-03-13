@@ -2154,6 +2154,10 @@
     const wrongLetters = LETTERS.filter(l => l !== letter).sort(() => Math.random() - 0.5).slice(0, 3);
     const choices = [letter, ...wrongLetters].sort(() => Math.random() - 0.5);
 
+    // Hide the first letter of the animal name with an underline
+    // e.g. "Dog" becomes "_og", "Elephant" becomes "_lephant"
+    const hiddenName = '<span class="hidden-letter">_</span>' + d.animal.slice(1);
+
     quizSection.innerHTML = `
       <div class="quiz-score-bar">
         <span>⭐ Score: ${quizScore}</span>
@@ -2162,7 +2166,7 @@
       </div>
       <div class="quiz-prompt">
         <div class="quiz-emoji">${d.emoji}</div>
-        <div class="quiz-question">Which letter is for <span class="animal-name">${d.animal}</span>?</div>
+        <div class="quiz-question">Which letter is for <span class="animal-name" id="quizAnimalName">${hiddenName}</span>?</div>
       </div>
       <div class="quiz-choices">
         ${choices.map(c => `<button class="quiz-choice" style="background:${DATA[c].color}" data-letter="${c}">${c}</button>`).join('')}
@@ -2188,6 +2192,13 @@
       quizAnswered = true; quizScore++; quizStreak++;
       btn.classList.add('correct');
       playSuccessSound();
+
+      // Reveal the full animal name with the correct first letter
+      const nameEl = document.getElementById('quizAnimalName');
+      if (nameEl) {
+        nameEl.innerHTML = `<span class="revealed-letter">${correctLetter}</span>${DATA[correctLetter].animal.slice(1)}`;
+      }
+
       speakPraise(`Yes! Great job! ${correctLetter} is for ${DATA[correctLetter].animal}!`);
       visitedLetters.add(correctLetter);
       updateProgress();
@@ -2200,6 +2211,13 @@
         quizSection.querySelectorAll('.quiz-choice').forEach(b => {
           if (b.dataset.letter === correctLetter) b.classList.add('correct');
         });
+
+        // Reveal the full animal name with the correct first letter
+        const nameEl = document.getElementById('quizAnimalName');
+        if (nameEl) {
+          nameEl.innerHTML = `<span class="revealed-letter">${correctLetter}</span>${DATA[correctLetter].animal.slice(1)}`;
+        }
+
         speakCorrection(`Oops! Not quite. The answer is ${correctLetter}. ${correctLetter} is for ${DATA[correctLetter].animal}.`);
       }, 500);
       setTimeout(() => { quizIndex++; showQuizQuestion(); }, 3500);
