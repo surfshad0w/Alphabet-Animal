@@ -1602,7 +1602,15 @@
   // TAB SWITCHING
   // ============================================================
 
-  function switchTab(tab) {
+  let currentTab = 'letters';
+
+  function switchTab(tab, force = false) {
+    const activeBtn = document.querySelector('.tab-btn.active');
+    if (!force && currentTab === tab && activeBtn && activeBtn.id.toLowerCase().includes(tab)) {
+      return; // prevent restarting active games by tapping the same tab
+    }
+    currentTab = tab;
+
     document.getElementById('tabLetters').classList.toggle('active', tab === 'letters');
     document.getElementById('tabSketch').classList.toggle('active', tab === 'sketch');
     document.getElementById('tabQuiz').classList.toggle('active', tab === 'quiz');
@@ -1659,7 +1667,7 @@
     
     // UI resets
     buildGrid();
-    switchTab('letters');
+    switchTab('letters', true);
     updateProgress();
     
     try {
