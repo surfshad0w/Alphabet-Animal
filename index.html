@@ -91,12 +91,16 @@
       display: flex; gap: 4px;
       background: rgba(0,0,0,0.05); border-radius: 12px; padding: 3px;
       margin-bottom: 0.75rem; position: relative; z-index: 2;
+      overflow-x: auto; max-width: 100%; white-space: nowrap;
+      -webkit-overflow-scrolling: touch; scrollbar-width: none;
     }
+    .tab-bar::-webkit-scrollbar { display: none; }
 
     .tab-btn {
       padding: 6px 14px; border: none; background: transparent;
       border-radius: 10px; font-size: clamp(0.65rem, 1.8vw, 0.85rem);
       font-weight: 700; color: #999; cursor: pointer; transition: all 0.25s ease;
+      flex-shrink: 0; white-space: nowrap;
     }
 
     .tab-btn.active {
@@ -476,6 +480,70 @@
       font-size: 1rem; cursor: pointer;
       box-shadow: 0 4px 15px rgba(255,107,107,0.3);
     }
+
+    /* ===== MATCH SECTION ===== */
+    .match-section {
+      width: 100%; max-width: 500px; display: flex; flex-direction: column; align-items: center; position: relative; z-index: 2;
+    }
+    .match-section.hidden { display: none; }
+    
+    .match-header { text-align: center; margin-bottom: 1rem; }
+    .match-score { font-size: 1.1rem; font-weight: 700; color: #555; }
+    
+    .match-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(8px, 2vw, 14px); width: 100%; max-width: 320px;
+      perspective: 1000px; margin-bottom: 1rem;
+    }
+    .match-card {
+      aspect-ratio: 1; position: relative; cursor: pointer; transform-style: preserve-3d;
+      transition: transform 0.5s cubic-bezier(0.4, 0.2, 0.2, 1);
+    }
+    .match-card.flipped { transform: rotateY(180deg); }
+    .match-card.matched { opacity: 0; pointer-events: none; transition: opacity 0.5s 0.2s, transform 0.5s; }
+    
+    .match-card-front, .match-card-back {
+      position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 16px;
+      display: flex; align-items: center; justify-content: center; flex-direction: column;
+      box-shadow: 0 3px 12px rgba(0,0,0,0.08);
+    }
+    .match-card-front {
+      background: linear-gradient(135deg, #A8D5A2, #4ECDC4);
+      font-size: 2rem; color: white; background-size: 200% 100%; animation: shimmer 3s linear infinite;
+    }
+    .match-card-front::after { content: '❓'; opacity: 0.5; }
+    .match-card-back { background: white; transform: rotateY(180deg); border: 3px solid #eee; }
+    .match-card .card-text { font-size: clamp(2rem, 6vw, 3rem); font-weight: 900; color: #444; line-height: 1; }
+    .match-card .card-sub { font-size: clamp(0.55rem, 1.5vw, 0.8rem); font-weight: 700; color: rgba(0,0,0,0.3); margin-top: 4px; text-transform: uppercase; }
+
+    /* ===== SPELL SECTION ===== */
+    .spell-section {
+      width: 100%; max-width: 500px; display: flex; flex-direction: column; align-items: center; position: relative; z-index: 2;
+    }
+    .spell-section.hidden { display: none; }
+    
+    .spell-header { margin-bottom: 1rem; text-align: center; }
+    .spell-prompt { font-size: 1.1rem; font-weight: 700; color: #555; }
+    
+    .spell-target-img { font-size: clamp(4rem, 14vw, 7rem); margin-bottom: 1rem; animation: bounce 2s infinite; }
+    
+    .spell-slots { display: flex; gap: 10px; margin-bottom: 2rem; }
+    .spell-slot {
+      width: clamp(40px, 12vw, 60px); height: clamp(50px, 15vw, 75px);
+      border-bottom: 4px solid #ccc; display: flex; align-items: center; justify-content: center;
+      font-size: clamp(2rem, 6vw, 3rem); font-weight: 900; color: #444;
+    }
+    .spell-slot.filled { border-bottom-color: #FF6B6B; }
+    .spell-slot.wrong { animation: canvas-shake 0.4s ease; border-bottom-color: #E74C3C; color: #E74C3C; }
+    
+    .spell-letters { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; max-width: 320px; }
+    .spell-letter-btn {
+      width: clamp(45px, 14vw, 65px); height: clamp(45px, 14vw, 65px);
+      border: none; border-radius: 12px; background: white; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      font-size: clamp(1.8rem, 5vw, 2.5rem); font-weight: 800; color: #333;
+      cursor: pointer; transition: transform 0.2s, opacity 0.2s;
+    }
+    .spell-letter-btn:active { transform: scale(0.9); }
+    .spell-letter-btn.used { opacity: 0; pointer-events: none; transform: scale(0); }
 
     /* ===== DETAIL PAGE ===== */
     .detail-page {
@@ -980,6 +1048,8 @@
     <button class="tab-btn active" id="tabLetters" onclick="switchTab('letters')">🔤 Letters</button>
     <button class="tab-btn" id="tabSketch" onclick="switchTab('sketch')">✏️ Sketch</button>
     <button class="tab-btn" id="tabQuiz" onclick="switchTab('quiz')">🎮 Quiz</button>
+    <button class="tab-btn" id="tabMatch" onclick="switchTab('match')">🧩 Match</button>
+    <button class="tab-btn" id="tabSpell" onclick="switchTab('spell')">🔠 Spell</button>
     <button class="tab-btn" id="tabStickers" onclick="switchTab('stickers')">🖼️ Stickers</button>
   </div>
 
@@ -1046,6 +1116,12 @@
 
   <!-- Quiz Section -->
   <div class="quiz-section hidden" id="quizSection"></div>
+
+  <!-- Match Section -->
+  <div class="match-section hidden" id="matchSection"></div>
+
+  <!-- Spell Section -->
+  <div class="spell-section hidden" id="spellSection"></div>
 
   <!-- ===== STICKER BOOK SECTION ===== -->
   <div class="sticker-section hidden" id="stickerSection">
@@ -1525,15 +1601,21 @@
     document.getElementById('tabLetters').classList.toggle('active', tab === 'letters');
     document.getElementById('tabSketch').classList.toggle('active', tab === 'sketch');
     document.getElementById('tabQuiz').classList.toggle('active', tab === 'quiz');
+    document.getElementById('tabMatch').classList.toggle('active', tab === 'match');
+    document.getElementById('tabSpell').classList.toggle('active', tab === 'spell');
     document.getElementById('tabStickers').classList.toggle('active', tab === 'stickers');
 
     letterGrid.style.display = tab === 'letters' ? '' : 'none';
     sketchSection.classList.toggle('hidden', tab !== 'sketch');
     quizSection.classList.toggle('hidden', tab !== 'quiz');
+    document.getElementById('matchSection').classList.toggle('hidden', tab !== 'match');
+    document.getElementById('spellSection').classList.toggle('hidden', tab !== 'spell');
     stickerSection.classList.toggle('hidden', tab !== 'stickers');
 
     if (tab === 'sketch') initSketch();
     if (tab === 'quiz') startQuiz();
+    if (tab === 'match') { if (typeof startMatch === 'function') startMatch(); }
+    if (tab === 'spell') { if (typeof startSpell === 'function') startSpell(); }
     if (tab === 'stickers') initStickerBook();
 
     playTapSound();
@@ -1574,6 +1656,10 @@
     buildGrid();
     switchTab('letters');
     updateProgress();
+    
+    try {
+      if (typeof buildSceneSelector === 'function') buildSceneSelector();
+    } catch (e) {}
     
     document.getElementById('stickerCount').innerText = currentMode === 'animals' ? '🐾 0 animals placed' : '🌟 0 items placed';
     document.getElementById('stickerEmptyHint').innerText = currentMode === 'animals' ? '👆 Tap an animal below to place it here!' : '👆 Tap an item below to place it here!';
@@ -2483,6 +2569,218 @@
   });
 
   // ============================================================
+  // MATCHING GAME
+  // ============================================================
+  
+  let matchCards = [];
+  let firstCard = null;
+  let secondCard = null;
+  let matchLock = false;
+  let matchesFound = 0;
+  
+  function startMatch() {
+    const section = document.getElementById('matchSection');
+    section.innerHTML = `
+      <div class="match-header">
+        <div class="match-score">Matches: <span id="matchScore">0</span> / 6</div>
+      </div>
+      <div class="match-grid" id="matchGrid"></div>
+    `;
+    
+    const grid = document.getElementById('matchGrid');
+    matchesFound = 0;
+    
+    const available = Object.keys(DATA);
+    const shuffledLetters = available.sort(() => 0.5 - Math.random()).slice(0, 6);
+    matchCards = [];
+    
+    shuffledLetters.forEach(l => {
+      const d = DATA[l];
+      matchCards.push({ type: 'letter', letter: l, display: l });
+      matchCards.push({ type: 'image', letter: l, display: d.emoji, name: d.animal });
+    });
+    
+    matchCards.sort(() => 0.5 - Math.random());
+    
+    matchCards.forEach((card, i) => {
+      const el = document.createElement('div');
+      el.className = 'match-card';
+      el.dataset.index = i;
+      el.dataset.letter = card.letter;
+      
+      let backContent = card.type === 'letter' 
+        ? `<span class="card-text">${card.display}</span>`
+        : `<span class="card-text">${card.display}</span><span class="card-sub">${card.name.split(' ')[0]}</span>`;
+      
+      el.innerHTML = `
+        <div class="match-card-front"></div>
+        <div class="match-card-back">${backContent}</div>
+      `;
+      
+      el.addEventListener('click', () => flipMatchCard(el, card));
+      grid.appendChild(el);
+    });
+  }
+
+  function flipMatchCard(el, card) {
+    if (matchLock || el.classList.contains('flipped') || el.classList.contains('matched')) return;
+    
+    playTapSound();
+    el.classList.add('flipped');
+    
+    if (!firstCard) {
+      firstCard = { el, card };
+      speakText(card.type === 'letter' ? card.display : card.name);
+      return;
+    }
+    
+    secondCard = { el, card };
+    matchLock = true;
+    speakText(card.type === 'letter' ? card.display : card.name);
+    
+    if (firstCard.card.letter === secondCard.card.letter) {
+      matchesFound++;
+      document.getElementById('matchScore').innerText = matchesFound;
+      setTimeout(() => {
+        playSuccessSound();
+        spawnStarBurst();
+        firstCard.el.classList.add('matched');
+        secondCard.el.classList.add('matched');
+        resetMatchState();
+        if (matchesFound === 6) setTimeout(showMatchComplete, 600);
+      }, 500);
+    } else {
+      setTimeout(() => {
+        playWrongSound();
+        firstCard.el.classList.remove('flipped');
+        secondCard.el.classList.remove('flipped');
+        resetMatchState();
+      }, 1000);
+    }
+  }
+  
+  function resetMatchState() {
+    firstCard = null; secondCard = null; matchLock = false;
+  }
+  
+  function showMatchComplete() {
+    launchConfetti();
+    document.getElementById('matchSection').innerHTML = `
+      <div class="quiz-complete">
+        <div class="trophy">🏆</div>
+        <h2>Perfect Memory!</h2>
+        <p>You found all 6 pairs!</p>
+        <button onclick="startMatch()">Play Again</button>
+      </div>
+    `;
+  }
+  
+  // ============================================================
+  // SPELLING GAME
+  // ============================================================
+  
+  let spellTarget = '';
+  let spellEmoji = '';
+  let spellCurrent = [];
+  
+  function startSpell() {
+    const section = document.getElementById('spellSection');
+    
+    // Choose a target word that is short (3-4 letters if possible)
+    let candidates = Object.values(DATA)
+      .map(d => ({ word: d.animal.split(' ')[0].toUpperCase(), emoji: d.emoji }))
+      .filter(item => item.word.length >= 3 && item.word.length <= 4);
+      
+    if (candidates.length === 0) {
+      // fallback to any
+      candidates = Object.values(DATA).map(d => ({ word: d.animal.split(' ')[0].toUpperCase(), emoji: d.emoji }));
+    }
+    
+    const targetItem = candidates[Math.floor(Math.random() * candidates.length)];
+    spellTarget = targetItem.word;
+    spellEmoji = targetItem.emoji;
+    spellCurrent = [];
+    
+    // Generate letter pool: target letters + some random ones
+    let pool = spellTarget.split('');
+    while (pool.length < 8) {
+      pool.push(LETTERS[Math.floor(Math.random() * LETTERS.length)]);
+    }
+    pool.sort(() => 0.5 - Math.random());
+    
+    renderSpellGame(pool);
+  }
+  
+  function renderSpellGame(pool) {
+    const section = document.getElementById('spellSection');
+    
+    let slotsHtml = '';
+    for (let i = 0; i < spellTarget.length; i++) {
+      const isFilled = spellCurrent[i] !== undefined;
+      const letter = isFilled ? spellCurrent[i] : '';
+      slotsHtml += `<div class="spell-slot ${isFilled ? 'filled' : ''}" id="spellSlot-${i}">${letter}</div>`;
+    }
+    
+    let poolHtml = '';
+    pool.forEach((letter, i) => {
+      poolHtml += `<button class="spell-letter-btn" id="spellBtn-${i}" onclick="tapSpellLetter('${letter}', ${i})">${letter}</button>`;
+    });
+    
+    section.innerHTML = `
+      <div class="spell-header">
+        <div class="spell-target-img">${spellEmoji}</div>
+        <div class="spell-prompt">Spell the word!</div>
+      </div>
+      <div class="spell-slots">${slotsHtml}</div>
+      <div class="spell-letters">${poolHtml}</div>
+    `;
+    
+    speakText(`Spell ${spellTarget}`);
+  }
+  
+  function tapSpellLetter(letter, btnIndex) {
+    if (spellCurrent.length >= spellTarget.length) return;
+    
+    const targetLetter = spellTarget[spellCurrent.length];
+    const btn = document.getElementById(`spellBtn-${btnIndex}`);
+    
+    if (letter === targetLetter) {
+      playTapSound();
+      spellCurrent.push(letter);
+      btn.classList.add('used');
+      
+      const slot = document.getElementById(`spellSlot-${spellCurrent.length - 1}`);
+      slot.textContent = letter;
+      slot.classList.add('filled');
+      
+      if (spellCurrent.length === spellTarget.length) {
+        setTimeout(showSpellComplete, 400);
+      }
+    } else {
+      playWrongSound();
+      const slot = document.getElementById(`spellSlot-${spellCurrent.length}`);
+      slot.classList.remove('wrong');
+      void slot.offsetWidth;
+      slot.classList.add('wrong');
+    }
+  }
+  
+  function showSpellComplete() {
+    playSuccessSound();
+    spawnStarBurst();
+    launchConfetti();
+    document.getElementById('spellSection').innerHTML = `
+      <div class="quiz-complete">
+        <div class="trophy">🌟</div>
+        <h2>Great Spelling!</h2>
+        <p>You spelled ${spellTarget}!</p>
+        <button onclick="startSpell()">Play Again</button>
+      </div>
+    `;
+    speakPraise(`Great job! You spelled ${spellTarget}!`);
+  }
+
+  // ============================================================
   // QUIZ MODE
   // ============================================================
 
@@ -2706,20 +3004,119 @@
     }
   };
 
-  /** Initialize the sticker book (only builds tray once) */
+  const HOUSEHOLD_SCENES = {
+    livingroom: {
+      name: 'Living Room',
+      sky: 'linear-gradient(180deg, #FDF5E6 0%, #FAEBD7 60%, #DEB887 60%, #D2B48C 100%)',
+      decos: [
+        { emoji: '🖼️', left: '20%', top: '15%' }, { emoji: '🕰️', right: '25%', top: '10%' },
+        { emoji: '🪴', left: '10%', bottom: '40%' }, { emoji: '🛋️', left: '50%', bottom: '40%' },
+        { emoji: '📺', right: '10%', bottom: '45%' }, { emoji: '🪟', right: '5%', top: '20%' }
+      ]
+    },
+    bedroom: {
+      name: 'Bedroom',
+      sky: 'linear-gradient(180deg, #E6E6FA 0%, #D8BFD8 55%, #F5DEB3 55%, #DEB887 100%)',
+      decos: [
+        { emoji: '🛏️', left: '40%', bottom: '45%' }, { emoji: '🪟', left: '15%', top: '15%' },
+        { emoji: '🧸', left: '20%', bottom: '30%' }, { emoji: '🪞', right: '20%', bottom: '45%' },
+        { emoji: '📚', right: '10%', bottom: '35%' }, { emoji: '🌙', right: '15%', top: '10%' }
+      ]
+    },
+    bathroom: {
+      name: 'Bathroom',
+      sky: 'linear-gradient(180deg, #E0FFFF 0%, #AFEEEE 60%, #B0E0E6 60%, #ADD8E6 100%)',
+      decos: [
+        { emoji: '🛁', left: '20%', bottom: '40%' }, { emoji: '🚿', left: '15%', top: '20%' },
+        { emoji: '🧼', left: '45%', bottom: '35%' }, { emoji: '🪞', right: '30%', top: '25%' },
+        { emoji: '🧴', right: '20%', bottom: '45%' }, { emoji: '🧻', right: '10%', bottom: '40%' }
+      ]
+    },
+    backyard: {
+      name: 'Yard',
+      sky: 'linear-gradient(180deg, #87CEEB 0%, #B0E0E6 50%, #98FB98 50%, #3CB371 100%)',
+      decos: [
+        { emoji: '🌳', left: '10%', bottom: '50%' }, { emoji: '☀️', right: '10%', top: '5%' },
+        { emoji: '🌻', left: '30%', bottom: '40%' }, { emoji: '🏡', right: '20%', bottom: '50%' },
+        { emoji: '🦋', left: '50%', top: '20%' }, { emoji: '🪴', right: '40%', bottom: '35%' }
+      ]
+    }
+  };
+
+  const FOOD_SCENES = {
+    kitchen: {
+      name: 'Kitchen',
+      sky: 'linear-gradient(180deg, #FFF5EE 0%, #F5F5DC 55%, #DCDCDC 55%, #C0C0C0 100%)',
+      decos: [
+        { emoji: '🪟', left: '10%', top: '15%' }, { emoji: '🍽️', left: '45%', bottom: '45%' },
+        { emoji: '🧂', right: '30%', bottom: '50%' }, { emoji: '🔪', right: '20%', bottom: '45%' },
+        { emoji: '🧑‍🍳', left: '20%', bottom: '35%' }, { emoji: '🥘', right: '40%', bottom: '48%' }
+      ]
+    },
+    picnic: {
+      name: 'Picnic',
+      sky: 'linear-gradient(180deg, #87CEEB 0%, #E0FFFF 40%, #FFB6C1 40%, #FF69B4 100%)',
+      decos: [
+        { emoji: '🌳', left: '5%', bottom: '60%' }, { emoji: '☁️', right: '15%', top: '10%' },
+        { emoji: '🧺', left: '40%', bottom: '55%' }, { emoji: '🌸', left: '20%', bottom: '40%' },
+        { emoji: '🦋', right: '30%', top: '25%' }, { emoji: '☀️', left: '10%', top: '5%' }
+      ]
+    },
+    market: {
+      name: 'Market',
+      sky: 'linear-gradient(180deg, #FFEFD5 0%, #FFE4B5 45%, #CD853F 45%, #A0522D 100%)',
+      decos: [
+        { emoji: '🎪', left: '15%', bottom: '55%' }, { emoji: '🛍️', left: '40%', bottom: '50%' },
+        { emoji: '⚖️', right: '30%', bottom: '55%' }, { emoji: '🏷️', right: '10%', bottom: '45%' },
+        { emoji: '🛒', left: '60%', bottom: '45%' }, { emoji: '🏪', right: '45%', top: '20%' }
+      ]
+    }
+  };
+
+  function getActiveScenes() {
+    if (currentMode === 'household') return HOUSEHOLD_SCENES;
+    if (currentMode === 'food') return FOOD_SCENES;
+    return SCENES;
+  }
+
+  function buildSceneSelector() {
+    const selector = document.getElementById('sceneSelector');
+    if (!selector) return;
+    const scenes = getActiveScenes();
+    selector.innerHTML = '';
+    
+    Object.keys(scenes).forEach((key, index) => {
+      const scene = scenes[key];
+      const btn = document.createElement('button');
+      btn.className = `scene-btn ${index === 0 ? 'active' : ''}`;
+      btn.dataset.scene = key;
+      const icon = scene.decos[0] ? scene.decos[0].emoji : '🖼️';
+      btn.innerHTML = `${icon} ${scene.name}`;
+      btn.onclick = () => selectScene(key);
+      selector.appendChild(btn);
+      
+      if (index === 0) {
+        currentScene = key;
+      }
+    });
+
+    buildStickerTray();
+    clearStickers();
+    renderScene(currentScene);
+  }
+
   function initStickerBook() {
     if (!stickerBookInitialized) {
-      buildStickerTray();
+      buildSceneSelector();
       stickerBookInitialized = true;
     }
-    renderScene(currentScene);
   }
 
   /** Build the animal sticker tray at the bottom */
   function buildStickerTray() {
     stickerTray.innerHTML = '';
     LETTERS.forEach(letter => {
-      const d = ANIMAL_DATA[letter];
+      const d = DATA[letter];
       const item = document.createElement('div');
       item.classList.add('sticker-tray-item');
       item.dataset.letter = letter;
@@ -2737,7 +3134,7 @@
 
   /** Select a sticker from the tray */
   function selectStickerFromTray(letter, itemEl) {
-    const d = ANIMAL_DATA[letter];
+    const d = DATA[letter];
 
     // Toggle selection
     if (selectedSticker && selectedSticker.letter === letter) {
@@ -2776,7 +3173,10 @@
 
   /** Render the selected scene background */
   function renderScene(sceneName) {
-    const scene = SCENES[sceneName];
+    const scenes = getActiveScenes();
+    const scene = scenes[sceneName];
+    if (!scene) return;
+    
     stickerSceneBg.style.background = scene.sky;
     stickerSceneBg.innerHTML = '';
 
@@ -2796,7 +3196,7 @@
   function placeSticker(x, y) {
     if (!selectedSticker) return;
 
-    const d = ANIMAL_DATA[selectedSticker.letter];
+    const d = DATA[selectedSticker.letter];
 
     // Create sticker element
     const stickerEl = document.createElement('div');
