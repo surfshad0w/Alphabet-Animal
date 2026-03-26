@@ -2719,7 +2719,7 @@
   function buildStickerTray() {
     stickerTray.innerHTML = '';
     LETTERS.forEach(letter => {
-      const d = DATA[letter];
+      const d = ANIMAL_DATA[letter];
       const item = document.createElement('div');
       item.classList.add('sticker-tray-item');
       item.dataset.letter = letter;
@@ -2737,7 +2737,7 @@
 
   /** Select a sticker from the tray */
   function selectStickerFromTray(letter, itemEl) {
-    const d = DATA[letter];
+    const d = ANIMAL_DATA[letter];
 
     // Toggle selection
     if (selectedSticker && selectedSticker.letter === letter) {
@@ -2793,11 +2793,10 @@
     });
   }
 
-  /** Place a sticker on the canvas area */
   function placeSticker(x, y) {
     if (!selectedSticker) return;
 
-    const d = DATA[selectedSticker.letter];
+    const d = ANIMAL_DATA[selectedSticker.letter];
 
     // Create sticker element
     const stickerEl = document.createElement('div');
