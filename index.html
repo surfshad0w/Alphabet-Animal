@@ -487,7 +487,22 @@
     }
     .match-section.hidden { display: none; }
     
-    .match-header { text-align: center; margin-bottom: 0.5rem; }
+    .match-header { text-align: center; margin-bottom: 0.5rem; width: 100%; }
+    .match-mode-switcher {
+      display: flex; gap: 6px; justify-content: center; margin-bottom: 0.75rem;
+      flex-wrap: wrap;
+    }
+    .match-mode-btn {
+      padding: 7px 14px; border: 2px solid transparent;
+      border-radius: 12px; font-size: clamp(0.7rem, 2vw, 0.9rem);
+      font-weight: 700; color: #777; background: rgba(0,0,0,0.05);
+      cursor: pointer; transition: all 0.2s ease;
+    }
+    .match-mode-btn.active {
+      background: white; color: #333;
+      border-color: #FF6B6B;
+      box-shadow: 0 4px 12px rgba(255,107,107,0.2);
+    }
     .match-instructions { 
       font-size: 0.9rem; font-weight: 600; color: #777; margin-bottom: 1rem;
       background: rgba(255,107,107,0.1); padding: 8px 16px; border-radius: 20px;
@@ -496,7 +511,7 @@
     .match-score { font-size: 1.1rem; font-weight: 700; color: #555; margin-bottom: 0.5rem; }
     
     .match-grid {
-      display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(8px, 2vw, 14px); width: 100%; max-width: 320px;
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: clamp(8px, 2vw, 14px); width: 100%; max-width: 420px;
       perspective: 1000px; margin-bottom: 1rem;
     }
     .match-card {
@@ -517,7 +532,7 @@
     }
     .match-card-front::after { content: '❓'; opacity: 0.5; }
     .match-card-back { background: white; transform: rotateY(180deg); border: 3px solid #eee; }
-    .match-card .card-text { font-size: clamp(2rem, 6vw, 3rem); font-weight: 900; color: #444; line-height: 1; }
+    .match-card .card-text { font-size: clamp(1.6rem, 5vw, 2.5rem); font-weight: 900; color: #444; line-height: 1; }
     .match-card .card-sub { font-size: clamp(0.55rem, 1.5vw, 0.8rem); font-weight: 700; color: rgba(0,0,0,0.3); margin-top: 4px; text-transform: uppercase; }
 
     /* ===== SPELL SECTION ===== */
@@ -2590,28 +2605,46 @@
   let secondCard = null;
   let matchLock = false;
   let matchesFound = 0;
+  let matchMode = 'emoji';
+  const MATCH_PAIR_COUNT = 8;
+
+  function setMatchMode(mode) {
+    matchMode = mode;
+    startMatch();
+  }
   
   function startMatch() {
     const section = document.getElementById('matchSection');
+    const isCaseMode = matchMode === 'case';
+    const totalPairs = MATCH_PAIR_COUNT;
     section.innerHTML = `
       <div class="match-header">
-        <div class="match-score">Matches: <span id="matchScore">0</span> / 6</div>
-        <div class="match-instructions">💡 Match each letter with its starting emoji!</div>
+        <div class="match-mode-switcher">
+          <button class="match-mode-btn ${!isCaseMode ? 'active' : ''}" onclick="setMatchMode('emoji')">🧩 Letter + Emoji</button>
+          <button class="match-mode-btn ${isCaseMode ? 'active' : ''}" onclick="setMatchMode('case')">🔠 Upper + Lower</button>
+        </div>
+        <div class="match-score">Matches: <span id="matchScore">0</span> / ${totalPairs}</div>
+        <div class="match-instructions">${isCaseMode ? '💡 Match each uppercase letter with its lowercase partner!' : '💡 Match each letter with its starting emoji!'}</div>
       </div>
       <div class="match-grid" id="matchGrid"></div>
     `;
     
     const grid = document.getElementById('matchGrid');
     matchesFound = 0;
-    
-    const available = Object.keys(DATA);
-    const shuffledLetters = available.sort(() => 0.5 - Math.random()).slice(0, 6);
+    resetMatchState();
     matchCards = [];
+
+    const shuffledLetters = [...LETTERS].sort(() => 0.5 - Math.random()).slice(0, totalPairs);
     
     shuffledLetters.forEach(l => {
-      const d = DATA[l];
-      matchCards.push({ type: 'letter', letter: l, display: l });
-      matchCards.push({ type: 'image', letter: l, display: d.emoji, name: d.animal });
+      if (isCaseMode) {
+        matchCards.push({ type: 'upper', letter: l, display: l, say: `uppercase ${l}` });
+        matchCards.push({ type: 'lower', letter: l, display: l.toLowerCase(), say: `lowercase ${l}` });
+      } else {
+        const d = DATA[l];
+        matchCards.push({ type: 'letter', letter: l, display: l, say: l });
+        matchCards.push({ type: 'image', letter: l, display: d.emoji, name: d.animal, say: d.animal });
+      }
     });
     
     matchCards.sort(() => 0.5 - Math.random());
@@ -2622,9 +2655,9 @@
       el.dataset.index = i;
       el.dataset.letter = card.letter;
       
-      let backContent = card.type === 'letter' 
-        ? `<span class="card-text">${card.display}</span>`
-        : `<span class="card-text">${card.display}</span><span class="card-sub">${card.name.split(' ')[0]}</span>`;
+      let backContent = card.type === 'image'
+        ? `<span class="card-text">${card.display}</span><span class="card-sub">${card.name.split(' ')[0]}</span>`
+        : `<span class="card-text">${card.display}</span>`;
       
       el.innerHTML = `
         <div class="match-card-front"></div>
@@ -2644,15 +2677,15 @@
     
     if (!firstCard) {
       firstCard = { el, card };
-      speakText(card.type === 'letter' ? card.display : card.name);
+      speakText(card.say || card.display);
       return;
     }
     
     secondCard = { el, card };
     matchLock = true;
-    speakText(card.type === 'letter' ? card.display : card.name);
+    speakText(card.say || card.display);
     
-    if (firstCard.card.letter === secondCard.card.letter) {
+    if (firstCard.card.letter === secondCard.card.letter && firstCard.card.type !== secondCard.card.type) {
       matchesFound++;
       document.getElementById('matchScore').innerText = matchesFound;
       setTimeout(() => {
@@ -2661,7 +2694,7 @@
         firstCard.el.classList.add('matched');
         secondCard.el.classList.add('matched');
         resetMatchState();
-        if (matchesFound === 6) setTimeout(showMatchComplete, 600);
+        if (matchesFound === MATCH_PAIR_COUNT) setTimeout(showMatchComplete, 600);
       }, 500);
     } else {
       setTimeout(() => {
@@ -2679,11 +2712,12 @@
   
   function showMatchComplete() {
     launchConfetti();
+    const modeLabel = matchMode === 'case' ? 'letter pairs' : 'pairs';
     document.getElementById('matchSection').innerHTML = `
       <div class="quiz-complete">
         <div class="trophy">🏆</div>
         <h2>Perfect Memory!</h2>
-        <p>You found all 6 pairs!</p>
+        <p>You found all ${MATCH_PAIR_COUNT} ${modeLabel}!</p>
         <button onclick="startMatch()">Play Again</button>
       </div>
     `;
