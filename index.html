@@ -535,6 +535,126 @@
     .match-card .card-text { font-size: clamp(1.6rem, 5vw, 2.5rem); font-weight: 900; color: #444; line-height: 1; }
     .match-card .card-sub { font-size: clamp(0.55rem, 1.5vw, 0.8rem); font-weight: 700; color: rgba(0,0,0,0.3); margin-top: 4px; text-transform: uppercase; }
 
+    /* ===== PHONICS / FEED / POP ===== */
+    .phonics-section, .feed-section, .pop-section {
+      width: 100%; max-width: 500px;
+      display: flex; flex-direction: column; align-items: center;
+      position: relative; z-index: 2;
+    }
+    .phonics-section.hidden, .feed-section.hidden, .pop-section.hidden { display: none; }
+
+    .activity-score-bar {
+      display: flex; gap: 0.8rem; flex-wrap: wrap; justify-content: center;
+      margin-bottom: 0.8rem; font-size: clamp(0.72rem, 2vw, 0.95rem);
+      font-weight: 700; color: #666;
+    }
+
+    .phonics-card, .feed-card, .pop-card {
+      width: 100%; background: rgba(255,255,255,0.82);
+      backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+      border-radius: 24px; padding: 1rem; box-shadow: 0 6px 24px rgba(0,0,0,0.08);
+      text-align: center;
+    }
+
+    .phonics-sound-btn, .feed-replay-btn, .pop-replay-btn {
+      border: none; border-radius: 20px; padding: 10px 18px;
+      font-size: clamp(0.9rem, 2.4vw, 1rem); font-weight: 800;
+      color: white; background: linear-gradient(135deg, #FF6B6B, #FFA07A);
+      box-shadow: 0 6px 18px rgba(255,107,107,0.25); cursor: pointer;
+      margin-bottom: 1rem;
+    }
+
+    .phonics-prompt, .feed-prompt, .pop-prompt {
+      font-size: clamp(1rem, 3vw, 1.35rem); font-weight: 800; color: #444;
+      margin-bottom: 0.8rem;
+    }
+
+    .phonics-hint, .feed-hint, .pop-hint {
+      font-size: clamp(0.8rem, 2vw, 0.95rem); color: #888; margin-bottom: 1rem;
+    }
+
+    .phonics-choices, .feed-choices {
+      display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;
+      width: 100%; max-width: 340px; margin: 0 auto 0.75rem;
+    }
+
+    .phonics-choice, .feed-choice {
+      aspect-ratio: 1.25; border: none; border-radius: 18px; cursor: pointer;
+      font-size: clamp(2rem, 7vw, 3.3rem); font-weight: 900; color: rgba(0,0,0,0.28);
+      box-shadow: 0 4px 14px rgba(0,0,0,0.09); transition: transform 0.18s ease, box-shadow 0.18s ease;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .phonics-choice:active, .feed-choice:active { transform: scale(0.95); }
+    .phonics-choice.correct, .feed-choice.correct { background: #82E0AA !important; color: white !important; }
+    .phonics-choice.wrong, .feed-choice.wrong { animation: quiz-wrong 0.4s ease; }
+
+    .phonics-reveal {
+      margin-top: 0.5rem; font-size: clamp(0.95rem, 2.4vw, 1.1rem); color: #666; font-weight: 700;
+    }
+    .phonics-reveal .big { display: block; font-size: clamp(3rem, 10vw, 4.5rem); margin-bottom: 0.2rem; }
+
+    .feed-animal-wrap {
+      position: relative; margin: 0 auto 1rem; width: min(78vw, 280px); height: min(78vw, 280px);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .feed-animal {
+      width: 100%; height: 100%; border-radius: 28px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.9), rgba(255,255,255,0.72));
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      box-shadow: inset 0 0 0 3px rgba(255,255,255,0.4), 0 8px 24px rgba(0,0,0,0.08);
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+    .feed-animal.happy { transform: scale(1.06); box-shadow: 0 10px 28px rgba(78,205,196,0.32); }
+    .feed-animal .emoji { font-size: clamp(4.5rem, 18vw, 7rem); line-height: 1; }
+    .feed-animal .name { margin-top: 0.5rem; font-size: clamp(1rem, 2.8vw, 1.2rem); font-weight: 800; color: #555; }
+    .feed-mouth {
+      position: absolute; bottom: 26%; right: 18%; width: clamp(42px, 10vw, 58px); height: clamp(42px, 10vw, 58px);
+      border-radius: 50%; background: rgba(255,107,107,0.18); border: 3px dashed rgba(255,107,107,0.45);
+      display: flex; align-items: center; justify-content: center; color: #FF6B6B; font-weight: 900;
+      transform: rotate(-10deg);
+    }
+    .feed-mouth.eat { animation: feed-bite 0.45s ease; }
+
+    @keyframes feed-bite {
+      0%, 100% { transform: rotate(-10deg) scale(1); }
+      50% { transform: rotate(-10deg) scale(1.18); }
+    }
+
+    .pop-playfield {
+      position: relative; width: 100%; max-width: 420px; height: 420px; overflow: hidden;
+      border-radius: 28px; background: linear-gradient(180deg, #BCEBFF 0%, #EAFBFF 55%, #F8FFFF 100%);
+      box-shadow: inset 0 -40px 0 rgba(255,255,255,0.45), 0 8px 24px rgba(0,0,0,0.08);
+      margin: 0 auto;
+    }
+    .pop-bubble-btn {
+      position: absolute; width: 74px; height: 74px; border-radius: 50%; border: none; cursor: pointer;
+      background: radial-gradient(circle at 30% 25%, rgba(255,255,255,0.95), rgba(255,255,255,0.6) 26%, rgba(125,200,255,0.55) 65%, rgba(85,175,240,0.75) 100%);
+      box-shadow: inset -6px -10px 16px rgba(255,255,255,0.3), 0 8px 18px rgba(69,183,209,0.22);
+      color: #245; font-size: 2rem; font-weight: 900;
+      display: flex; align-items: center; justify-content: center;
+      animation: pop-float linear forwards;
+    }
+    .pop-bubble-btn::before {
+      content: ''; position: absolute; width: 16px; height: 16px; border-radius: 50%;
+      background: rgba(255,255,255,0.75); top: 12px; left: 16px;
+    }
+    .pop-bubble-btn.wrong { animation: quiz-wrong 0.35s ease; }
+    .pop-bubble-btn.popped { transform: scale(1.2); opacity: 0; transition: all 0.2s ease; }
+    .pop-splash {
+      position: absolute; pointer-events: none; font-size: 1.4rem; transform: translate(-50%, -50%);
+      animation: pop-splash-rise 0.5s ease forwards;
+    }
+
+    @keyframes pop-float {
+      from { transform: translateY(0); }
+      to { transform: translateY(-500px); }
+    }
+
+    @keyframes pop-splash-rise {
+      0% { opacity: 1; transform: translate(-50%, -50%) scale(0.7); }
+      100% { opacity: 0; transform: translate(-50%, -120%) scale(1.3); }
+    }
+
     /* ===== SPELL SECTION ===== */
     .spell-section {
       width: 100%; max-width: 500px; display: flex; flex-direction: column; align-items: center; position: relative; z-index: 2;
@@ -1069,6 +1189,9 @@
     <button class="tab-btn" id="tabSketch" onclick="switchTab('sketch')">✏️ Sketch</button>
     <button class="tab-btn" id="tabQuiz" onclick="switchTab('quiz')">🎮 Quiz</button>
     <button class="tab-btn" id="tabMatch" onclick="switchTab('match')">🧩 Match</button>
+    <button class="tab-btn" id="tabPhonics" onclick="switchTab('phonics')">🔊 Phonics</button>
+    <button class="tab-btn" id="tabFeed" onclick="switchTab('feed')">🍽️ Feed</button>
+    <button class="tab-btn" id="tabPop" onclick="switchTab('pop')">🫧 Pop</button>
     <button class="tab-btn" id="tabSpell" onclick="switchTab('spell')">🔠 Spell</button>
     <button class="tab-btn" id="tabStickers" onclick="switchTab('stickers')">🖼️ Stickers</button>
   </div>
@@ -1139,6 +1262,15 @@
 
   <!-- Match Section -->
   <div class="match-section hidden" id="matchSection"></div>
+
+  <!-- Phonics Section -->
+  <div class="phonics-section hidden" id="phonicsSection"></div>
+
+  <!-- Feed Section -->
+  <div class="feed-section hidden" id="feedSection"></div>
+
+  <!-- Pop Section -->
+  <div class="pop-section hidden" id="popSection"></div>
 
   <!-- Spell Section -->
   <div class="spell-section hidden" id="spellSection"></div>
@@ -1355,6 +1487,27 @@
   let quizStreak = 0;
   let quizAnswered = false;
 
+  // Phonics state
+  let phonicsLetters = [];
+  let phonicsIndex = 0;
+  let phonicsScore = 0;
+  let phonicsAnswered = false;
+
+  // Feed state
+  let feedLetters = [];
+  let feedIndex = 0;
+  let feedScore = 0;
+  let feedAnswered = false;
+
+  // Pop state
+  let popTargetLetter = null;
+  let popHits = 0;
+  let popGoal = 5;
+  let popScore = 0;
+  let popRound = 1;
+  let popSpawnTimers = [];
+  let popRoundComplete = false;
+
   // Sketch state
   let sketchShuffledLetters = [];       // Randomized order of letters
   let sketchQueueIndex = 0;             // Current position in shuffled queue
@@ -1403,6 +1556,9 @@
   const progressText       = document.getElementById('progressText');
   const progressPercent    = document.getElementById('progressPercent');
   const quizSection        = document.getElementById('quizSection');
+  const phonicsSection     = document.getElementById('phonicsSection');
+  const feedSection        = document.getElementById('feedSection');
+  const popSection         = document.getElementById('popSection');
   const sketchSection      = document.getElementById('sketchSection');
   const completionOverlay  = document.getElementById('completionOverlay');
   const sceneSky           = document.getElementById('sceneSky');
@@ -1630,6 +1786,9 @@
     document.getElementById('tabSketch').classList.toggle('active', tab === 'sketch');
     document.getElementById('tabQuiz').classList.toggle('active', tab === 'quiz');
     document.getElementById('tabMatch').classList.toggle('active', tab === 'match');
+    document.getElementById('tabPhonics').classList.toggle('active', tab === 'phonics');
+    document.getElementById('tabFeed').classList.toggle('active', tab === 'feed');
+    document.getElementById('tabPop').classList.toggle('active', tab === 'pop');
     document.getElementById('tabSpell').classList.toggle('active', tab === 'spell');
     document.getElementById('tabStickers').classList.toggle('active', tab === 'stickers');
 
@@ -1637,12 +1796,20 @@
     sketchSection.classList.toggle('hidden', tab !== 'sketch');
     quizSection.classList.toggle('hidden', tab !== 'quiz');
     document.getElementById('matchSection').classList.toggle('hidden', tab !== 'match');
+    phonicsSection.classList.toggle('hidden', tab !== 'phonics');
+    feedSection.classList.toggle('hidden', tab !== 'feed');
+    popSection.classList.toggle('hidden', tab !== 'pop');
     document.getElementById('spellSection').classList.toggle('hidden', tab !== 'spell');
     stickerSection.classList.toggle('hidden', tab !== 'stickers');
+
+    if (tab !== 'pop') cleanupPopGame();
 
     if (tab === 'sketch') initSketch();
     if (tab === 'quiz') startQuiz();
     if (tab === 'match') { if (typeof startMatch === 'function') startMatch(); }
+    if (tab === 'phonics') { if (typeof startPhonics === 'function') startPhonics(); }
+    if (tab === 'feed') { if (typeof startFeedGame === 'function') startFeedGame(); }
+    if (tab === 'pop') { if (typeof startPopGame === 'function') startPopGame(); }
     if (tab === 'spell') { if (typeof startSpell === 'function') startSpell(); }
     if (tab === 'stickers') initStickerBook();
 
@@ -2722,7 +2889,335 @@
       </div>
     `;
   }
-  
+
+  // ============================================================
+  // PHONICS GAME
+  // ============================================================
+
+  function startPhonics() {
+    phonicsLetters = shuffleArray(LETTERS).slice(0, 10);
+    phonicsIndex = 0;
+    phonicsScore = 0;
+    showPhonicsQuestion();
+  }
+
+  function replayPhonicsPrompt() {
+    if (!phonicsLetters[phonicsIndex]) return;
+    const letter = phonicsLetters[phonicsIndex];
+    const d = DATA[letter];
+    speakText(`${letter} says ${d.sound}`);
+  }
+
+  function showPhonicsQuestion() {
+    if (phonicsIndex >= phonicsLetters.length) {
+      phonicsSection.innerHTML = `
+        <div class="quiz-complete">
+          <div class="trophy">🔊</div>
+          <h2>Sound Superstar!</h2>
+          <p>You matched ${phonicsScore} letter sounds!</p>
+          <button onclick="startPhonics()">🔄 Play Again</button>
+        </div>
+      `;
+      speakPraise('You are a sound superstar!');
+      return;
+    }
+
+    const letter = phonicsLetters[phonicsIndex];
+    const d = DATA[letter];
+    const wrongLetters = shuffleArray(LETTERS.filter(l => l !== letter)).slice(0, 3);
+    const choices = shuffleArray([letter, ...wrongLetters]);
+    phonicsAnswered = false;
+
+    phonicsSection.innerHTML = `
+      <div class="phonics-card">
+        <div class="activity-score-bar">
+          <span>🔊 Score: ${phonicsScore}</span>
+          <span>📝 ${phonicsIndex + 1} / ${phonicsLetters.length}</span>
+        </div>
+        <button class="phonics-sound-btn" onclick="replayPhonicsPrompt()">🔊 Hear the sound</button>
+        <div class="phonics-prompt">Which letter says <span style="color:#FF6B6B">${d.sound}</span>?</div>
+        <div class="phonics-hint">Tap the letter that makes the sound.</div>
+        <div class="phonics-choices">
+          ${choices.map(c => `<button class="phonics-choice" style="background:${DATA[c].color}" data-letter="${c}">${c}</button>`).join('')}
+        </div>
+        <div class="phonics-reveal" id="phonicsReveal"></div>
+      </div>
+    `;
+
+    phonicsSection.querySelectorAll('.phonics-choice').forEach(btn => {
+      btn.addEventListener('click', () => handlePhonicsAnswer(btn, letter));
+    });
+
+    setTimeout(replayPhonicsPrompt, 250);
+  }
+
+  function handlePhonicsAnswer(btn, correctLetter) {
+    if (phonicsAnswered) return;
+    phonicsAnswered = true;
+    const chosen = btn.dataset.letter;
+    const reveal = document.getElementById('phonicsReveal');
+    const d = DATA[correctLetter];
+
+    if (chosen === correctLetter) {
+      phonicsScore++;
+      btn.classList.add('correct');
+      playSuccessSound();
+      reveal.innerHTML = `<span class="big">${d.emoji}</span>${correctLetter} says ${d.sound} — ${correctLetter} is for ${d.animal}!`;
+      speakPraise(`${correctLetter} says ${d.sound}. ${correctLetter} is for ${d.animal}!`);
+    } else {
+      btn.classList.add('wrong');
+      playWrongSound();
+      phonicsSection.querySelectorAll('.phonics-choice').forEach(choice => {
+        if (choice.dataset.letter === correctLetter) choice.classList.add('correct');
+      });
+      reveal.innerHTML = `<span class="big">${d.emoji}</span>That sound was ${correctLetter}. ${correctLetter} says ${d.sound}.`;
+      speakCorrection(`That was ${correctLetter}. ${correctLetter} says ${d.sound}.`);
+    }
+
+    setTimeout(() => {
+      phonicsIndex++;
+      showPhonicsQuestion();
+    }, 1600);
+  }
+
+  // ============================================================
+  // FEED THE LETTER
+  // ============================================================
+
+  function startFeedGame() {
+    feedLetters = shuffleArray(LETTERS).slice(0, 8);
+    feedIndex = 0;
+    feedScore = 0;
+    showFeedRound();
+  }
+
+  function replayFeedPrompt() {
+    if (!feedLetters[feedIndex]) return;
+    const letter = feedLetters[feedIndex];
+    const d = DATA[letter];
+    speakText(`Feed ${d.animal} the letter ${letter}`);
+  }
+
+  function showFeedRound() {
+    if (feedIndex >= feedLetters.length) {
+      feedSection.innerHTML = `
+        <div class="quiz-complete">
+          <div class="trophy">🍽️</div>
+          <h2>Yummy Letters!</h2>
+          <p>You fed ${feedScore} hungry friends!</p>
+          <button onclick="startFeedGame()">🔄 Play Again</button>
+        </div>
+      `;
+      speakPraise('Yummy letters! Great job!');
+      return;
+    }
+
+    const letter = feedLetters[feedIndex];
+    const d = DATA[letter];
+    const wrongLetters = shuffleArray(LETTERS.filter(l => l !== letter)).slice(0, 2);
+    const choices = shuffleArray([letter, ...wrongLetters]);
+    feedAnswered = false;
+
+    feedSection.innerHTML = `
+      <div class="feed-card">
+        <div class="activity-score-bar">
+          <span>⭐ Fed: ${feedScore}</span>
+          <span>🍽️ ${feedIndex + 1} / ${feedLetters.length}</span>
+        </div>
+        <button class="feed-replay-btn" onclick="replayFeedPrompt()">🔊 Say it again</button>
+        <div class="feed-prompt">Feed <span style="color:#FF6B6B">${d.animal}</span> the letter <span style="color:#4ECDC4">${letter}</span>!</div>
+        <div class="feed-hint">Tap the right letter to feed the hungry friend.</div>
+        <div class="feed-animal-wrap">
+          <div class="feed-animal" id="feedAnimal">
+            <div class="emoji">${d.emoji}</div>
+            <div class="name">${d.animal}</div>
+          </div>
+          <div class="feed-mouth" id="feedMouth">YUM</div>
+        </div>
+        <div class="feed-choices">
+          ${choices.map(c => `<button class="feed-choice" style="background:${DATA[c].color}" data-letter="${c}">${c}</button>`).join('')}
+        </div>
+        <div class="phonics-reveal" id="feedReveal"></div>
+      </div>
+    `;
+
+    feedSection.querySelectorAll('.feed-choice').forEach(btn => {
+      btn.addEventListener('click', () => handleFeedChoice(btn, letter));
+    });
+
+    setTimeout(replayFeedPrompt, 250);
+  }
+
+  function handleFeedChoice(btn, correctLetter) {
+    if (feedAnswered) return;
+    const chosen = btn.dataset.letter;
+    const d = DATA[correctLetter];
+    const reveal = document.getElementById('feedReveal');
+    const animal = document.getElementById('feedAnimal');
+    const mouth = document.getElementById('feedMouth');
+
+    if (chosen === correctLetter) {
+      feedAnswered = true;
+      feedScore++;
+      btn.classList.add('correct');
+      animal.classList.add('happy');
+      mouth.classList.add('eat');
+      playSuccessSound();
+      spawnStarBurst();
+      reveal.textContent = `${d.animal} ate ${correctLetter}! Yum yum!`;
+      speakPraise(`Yum! ${d.animal} ate ${correctLetter}!`);
+      setTimeout(() => {
+        feedIndex++;
+        showFeedRound();
+      }, 1500);
+    } else {
+      btn.classList.add('wrong');
+      playWrongSound();
+      reveal.textContent = `Oops! ${d.animal} wants ${correctLetter}.`;
+      speakCorrection(`${d.animal} wants the letter ${correctLetter}.`);
+    }
+  }
+
+  // ============================================================
+  // POP THE BUBBLES
+  // ============================================================
+
+  function cleanupPopGame() {
+    popSpawnTimers.forEach(t => clearTimeout(t));
+    popSpawnTimers = [];
+  }
+
+  function startPopGame() {
+    cleanupPopGame();
+    popScore = 0;
+    popRound = 1;
+    startPopRound();
+  }
+
+  function replayPopPrompt() {
+    if (!popTargetLetter) return;
+    const d = DATA[popTargetLetter];
+    speakText(`Pop the ${popTargetLetter}s. ${popTargetLetter} says ${d.sound}`);
+  }
+
+  function startPopRound() {
+    cleanupPopGame();
+    popHits = 0;
+    popGoal = 5;
+    popRoundComplete = false;
+    popTargetLetter = LETTERS[Math.floor(Math.random() * LETTERS.length)];
+    renderPopGame();
+    setTimeout(replayPopPrompt, 250);
+  }
+
+  function renderPopGame() {
+    const d = DATA[popTargetLetter];
+    popSection.innerHTML = `
+      <div class="pop-card">
+        <div class="activity-score-bar">
+          <span>🫧 Pops: ${popScore}</span>
+          <span>🎯 ${popHits} / ${popGoal}</span>
+          <span>🌟 Round ${popRound}</span>
+        </div>
+        <button class="pop-replay-btn" onclick="replayPopPrompt()">🔊 Hear it again</button>
+        <div class="pop-prompt">Pop all the <span style="color:#FF6B6B">${popTargetLetter}</span>'s!</div>
+        <div class="pop-hint">Tap the floating bubbles with the right letter.</div>
+        <div class="pop-playfield" id="popPlayfield"></div>
+      </div>
+    `;
+
+    const field = document.getElementById('popPlayfield');
+    for (let i = 0; i < 9; i++) {
+      const timer = setTimeout(() => {
+        if (!document.getElementById('popPlayfield') || popRoundComplete) return;
+        spawnPopBubble(field, i);
+      }, i * 180);
+      popSpawnTimers.push(timer);
+    }
+  }
+
+  function spawnPopBubble(field, seed = 0) {
+    if (!field || popRoundComplete) return;
+
+    const useTarget = Math.random() < 0.45;
+    const letter = useTarget ? popTargetLetter : LETTERS.filter(l => l !== popTargetLetter)[Math.floor(Math.random() * 25)];
+    const bubble = document.createElement('button');
+    bubble.className = 'pop-bubble-btn';
+    bubble.textContent = letter;
+    bubble.dataset.letter = letter;
+    bubble.style.left = `${6 + Math.random() * 76}%`;
+    bubble.style.top = `${76 + Math.random() * 16}%`;
+    bubble.style.animationDuration = `${5.2 + Math.random() * 1.8}s`;
+    bubble.style.width = bubble.style.height = `${64 + Math.random() * 20}px`;
+    bubble.style.fontSize = `${1.7 + Math.random() * 0.6}rem`;
+
+    bubble.addEventListener('click', () => popBubbleTap(bubble));
+    bubble.addEventListener('animationend', () => {
+      bubble.remove();
+      if (!popRoundComplete && document.getElementById('popPlayfield')) {
+        const timer = setTimeout(() => spawnPopBubble(field), 120 + (seed * 10));
+        popSpawnTimers.push(timer);
+      }
+    });
+
+    field.appendChild(bubble);
+  }
+
+  function popBubbleTap(bubble) {
+    if (!bubble || popRoundComplete) return;
+    const chosen = bubble.dataset.letter;
+
+    if (chosen === popTargetLetter) {
+      popHits++;
+      popScore++;
+      playTapSound();
+      speakText(popTargetLetter);
+      createPopSplash(bubble, '✨');
+      bubble.classList.add('popped');
+      setTimeout(() => bubble.remove(), 180);
+
+      if (popHits >= popGoal) {
+        popRoundComplete = true;
+        launchConfetti();
+        playSuccessSound();
+        const currentRound = popRound;
+        popSection.innerHTML = `
+          <div class="quiz-complete">
+            <div class="trophy">🫧</div>
+            <h2>Pop Pop Hooray!</h2>
+            <p>You popped all the ${popTargetLetter}'s in round ${currentRound}!</p>
+            <button onclick="nextPopRound()">➡️ Next Round</button>
+          </div>
+        `;
+        speakPraise(`Pop pop hooray! You found all the ${popTargetLetter}s!`);
+      }
+    } else {
+      bubble.classList.add('wrong');
+      playWrongSound();
+      speakCorrection(`Try ${popTargetLetter}`);
+      setTimeout(() => bubble.classList.remove('wrong'), 300);
+    }
+  }
+
+  function createPopSplash(bubble, emoji) {
+    const field = document.getElementById('popPlayfield');
+    if (!field) return;
+    const rect = bubble.getBoundingClientRect();
+    const fieldRect = field.getBoundingClientRect();
+    const splash = document.createElement('div');
+    splash.className = 'pop-splash';
+    splash.textContent = emoji;
+    splash.style.left = `${rect.left - fieldRect.left + rect.width / 2}px`;
+    splash.style.top = `${rect.top - fieldRect.top + rect.height / 2}px`;
+    field.appendChild(splash);
+    setTimeout(() => splash.remove(), 520);
+  }
+
+  function nextPopRound() {
+    popRound++;
+    startPopRound();
+  }
+
   // ============================================================
   // SPELLING GAME
   // ============================================================
