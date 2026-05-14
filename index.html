@@ -1285,7 +1285,7 @@
     <button class="tab-btn" id="tabNumbers" onclick="switchTab('numbers')">🔢 Numbers</button>
   </div>
 
-  <div class="mode-strip">
+  <div class="mode-strip" id="modeStrip">
     <div class="mode-strip-label">Choose a world:</div>
     <div class="mode-switcher">
       <button class="mode-btn active" id="btnModeAnimals" onclick="switchMode('animals')">🦁 Animals</button>
@@ -1874,6 +1874,7 @@
     document.getElementById('tabNumbers').classList.toggle('active', tab === 'numbers');
 
     letterGrid.style.display = tab === 'letters' ? '' : 'none';
+    document.getElementById('modeStrip').style.display = tab === 'letters' ? '' : 'none';
     sketchSection.classList.toggle('hidden', tab !== 'sketch');
     quizSection.classList.toggle('hidden', tab !== 'quiz');
     document.getElementById('matchSection').classList.toggle('hidden', tab !== 'match');
@@ -4216,38 +4217,40 @@
   }
 
   /** Handle tap on the sticker canvas area */
-  stickerCanvasArea.addEventListener('click', (e) => {
-    // Don't place if tapping on an existing sticker
-    if (e.target.classList.contains('placed-sticker')) return;
-    if (!selectedSticker) return;
+  if (stickerCanvasArea) {
+    stickerCanvasArea.addEventListener('click', (e) => {
+      // Don't place if tapping on an existing sticker
+      if (e.target.classList.contains('placed-sticker')) return;
+      if (!selectedSticker) return;
 
-    const rect = stickerCanvasArea.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width) * 100;
-    const y = ((e.clientY - rect.top) / rect.height) * 100;
+      const rect = stickerCanvasArea.getBoundingClientRect();
+      const x = ((e.clientX - rect.left) / rect.width) * 100;
+      const y = ((e.clientY - rect.top) / rect.height) * 100;
 
-    // Clamp to keep stickers inside the area
-    const cx = Math.max(8, Math.min(92, x));
-    const cy = Math.max(8, Math.min(92, y));
+      // Clamp to keep stickers inside the area
+      const cx = Math.max(8, Math.min(92, x));
+      const cy = Math.max(8, Math.min(92, y));
 
-    placeSticker(cx, cy);
-  });
+      placeSticker(cx, cy);
+    });
 
-  // Touch tap for placing stickers (handle separately from drag)
-  stickerCanvasArea.addEventListener('touchend', (e) => {
-    if (e.target.classList.contains('placed-sticker')) return;
-    if (!selectedSticker) return;
-    if (e.changedTouches.length === 0) return;
+    // Touch tap for placing stickers (handle separately from drag)
+    stickerCanvasArea.addEventListener('touchend', (e) => {
+      if (e.target.classList.contains('placed-sticker')) return;
+      if (!selectedSticker) return;
+      if (e.changedTouches.length === 0) return;
 
-    const touch = e.changedTouches[0];
-    const rect = stickerCanvasArea.getBoundingClientRect();
-    const x = ((touch.clientX - rect.left) / rect.width) * 100;
-    const y = ((touch.clientY - rect.top) / rect.height) * 100;
+      const touch = e.changedTouches[0];
+      const rect = stickerCanvasArea.getBoundingClientRect();
+      const x = ((touch.clientX - rect.left) / rect.width) * 100;
+      const y = ((touch.clientY - rect.top) / rect.height) * 100;
 
-    const cx = Math.max(8, Math.min(92, x));
-    const cy = Math.max(8, Math.min(92, y));
+      const cx = Math.max(8, Math.min(92, x));
+      const cy = Math.max(8, Math.min(92, y));
 
-    placeSticker(cx, cy);
-  }, { passive: true });
+      placeSticker(cx, cy);
+    }, { passive: true });
+  }
 
   /** Undo the last placed sticker */
   function undoSticker() {
