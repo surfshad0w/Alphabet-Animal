@@ -645,6 +645,84 @@
       animation: pop-splash-rise 0.5s ease forwards;
     }
 
+    /* ===== NUMBERS HUB ===== */
+    .numbers-section {
+      width: 100%; max-width: 500px;
+      display: flex; flex-direction: column; align-items: center;
+      position: relative; z-index: 2;
+    }
+    .numbers-section.hidden { display: none; }
+
+    .numbers-shell {
+      width: 100%; background: rgba(255,255,255,0.82);
+      backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+      border-radius: 24px; padding: 1rem; box-shadow: 0 6px 24px rgba(0,0,0,0.08);
+    }
+    .numbers-title { text-align: center; font-size: clamp(1.1rem, 3vw, 1.5rem); font-weight: 900; color: #444; margin-bottom: 0.35rem; }
+    .numbers-subtitle { text-align: center; color: #888; font-size: clamp(0.8rem, 2vw, 0.95rem); margin-bottom: 0.9rem; }
+    .numbers-mode-switcher {
+      display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; margin-bottom: 1rem;
+    }
+    .numbers-mode-btn {
+      padding: 7px 14px; border: 2px solid transparent; border-radius: 12px;
+      font-size: clamp(0.7rem, 2vw, 0.9rem); font-weight: 700; color: #777;
+      background: rgba(0,0,0,0.05); cursor: pointer; transition: all 0.2s ease;
+    }
+    .numbers-mode-btn.active {
+      background: white; color: #333; border-color: #45B7D1; box-shadow: 0 4px 12px rgba(69,183,209,0.18);
+    }
+    .numbers-score-bar {
+      display: flex; gap: 0.8rem; justify-content: center; flex-wrap: wrap; margin-bottom: 0.9rem;
+      font-size: clamp(0.72rem, 2vw, 0.95rem); color: #666; font-weight: 700;
+    }
+    .numbers-prompt { text-align: center; font-size: clamp(1rem, 3vw, 1.3rem); font-weight: 800; color: #444; margin-bottom: 0.65rem; }
+    .numbers-hint { text-align: center; font-size: clamp(0.8rem, 2vw, 0.95rem); color: #888; margin-bottom: 1rem; }
+    .numbers-big-display { text-align: center; font-size: clamp(4rem, 16vw, 7rem); line-height: 1; margin-bottom: 0.8rem; }
+    .numbers-choices {
+      display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; max-width: 340px; margin: 0 auto 0.9rem;
+    }
+    .numbers-choice {
+      aspect-ratio: 1.25; border: none; border-radius: 18px; cursor: pointer; box-shadow: 0 4px 14px rgba(0,0,0,0.09);
+      font-size: clamp(2rem, 7vw, 3.2rem); font-weight: 900; color: rgba(0,0,0,0.3); transition: transform 0.18s ease;
+      display: flex; align-items: center; justify-content: center; background: white;
+    }
+    .numbers-choice:active { transform: scale(0.95); }
+    .numbers-choice.correct { background: #82E0AA !important; color: white !important; }
+    .numbers-choice.wrong { animation: quiz-wrong 0.4s ease; }
+    .numbers-count-row {
+      display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-bottom: 1rem; min-height: 86px;
+    }
+    .numbers-count-item { font-size: clamp(2.5rem, 10vw, 4rem); line-height: 1; }
+    .numbers-reveal { text-align: center; min-height: 1.6em; color: #666; font-weight: 700; }
+    .numbers-match-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; max-width: 360px; margin: 0 auto 1rem; perspective: 1000px;
+    }
+    .numbers-match-card {
+      aspect-ratio: 1; position: relative; cursor: pointer; transform-style: preserve-3d; transition: transform 0.5s cubic-bezier(0.4, 0.2, 0.2, 1);
+    }
+    .numbers-match-card.flipped { transform: rotateY(180deg); }
+    .numbers-match-card.matched { opacity: 0; pointer-events: none; transition: opacity 0.4s ease; }
+    .numbers-match-front, .numbers-match-back {
+      position: absolute; inset: 0; border-radius: 18px; backface-visibility: hidden; display: flex; align-items: center; justify-content: center; flex-direction: column;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.09);
+    }
+    .numbers-match-front { background: linear-gradient(135deg, #A8D5FF, #8CE0D1); color: white; font-size: 2rem; }
+    .numbers-match-front::after { content: '🔢'; opacity: 0.7; }
+    .numbers-match-back { background: white; transform: rotateY(180deg); border: 3px solid #eef6fb; }
+    .numbers-match-text { font-size: clamp(1.7rem, 6vw, 2.6rem); font-weight: 900; color: #446; line-height: 1.1; text-align: center; }
+    .numbers-match-qty { letter-spacing: 1px; }
+    .numbers-trace-wrap { display: flex; flex-direction: column; align-items: center; }
+    .numbers-trace-canvas-wrap {
+      position: relative; width: min(82vw, 360px); height: min(82vw, 360px); border-radius: 24px; overflow: hidden;
+      background: white; box-shadow: 0 4px 20px rgba(0,0,0,0.08); margin-bottom: 0.75rem; touch-action: none;
+    }
+    .numbers-trace-guide {
+      position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: min(55vw, 250px);
+      color: rgba(0,0,0,0.08); font-weight: 800; pointer-events: none;
+    }
+    .numbers-trace-canvas { position: absolute; inset: 0; z-index: 2; }
+    .numbers-trace-toolbar { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+
     @keyframes pop-float {
       from { transform: translateY(0); }
       to { transform: translateY(-500px); }
@@ -1193,7 +1271,7 @@
     <button class="tab-btn" id="tabFeed" onclick="switchTab('feed')">🍽️ Feed</button>
     <button class="tab-btn" id="tabPop" onclick="switchTab('pop')">🫧 Pop</button>
     <button class="tab-btn" id="tabSpell" onclick="switchTab('spell')">🔠 Spell</button>
-    <button class="tab-btn" id="tabStickers" onclick="switchTab('stickers')">🖼️ Stickers</button>
+    <button class="tab-btn" id="tabNumbers" onclick="switchTab('numbers')">🔢 Numbers</button>
   </div>
 
   <!-- Letter Grid -->
@@ -1275,43 +1353,8 @@
   <!-- Spell Section -->
   <div class="spell-section hidden" id="spellSection"></div>
 
-  <!-- ===== STICKER BOOK SECTION ===== -->
-  <div class="sticker-section hidden" id="stickerSection">
-    <div class="sticker-header">
-      <div class="sticker-title">🖼️ My Animal World</div>
-      <div class="sticker-subtitle">Pick a scene, then tap animals to place them!</div>
-    </div>
-
-    <!-- Scene selector -->
-    <div class="scene-selector" id="sceneSelector">
-      <button class="scene-btn active" data-scene="farm" onclick="selectScene('farm')">🌾 Farm</button>
-      <button class="scene-btn" data-scene="zoo" onclick="selectScene('zoo')">🦁 Zoo</button>
-      <button class="scene-btn" data-scene="ocean" onclick="selectScene('ocean')">🌊 Ocean</button>
-      <button class="scene-btn" data-scene="jungle" onclick="selectScene('jungle')">🌴 Jungle</button>
-      <button class="scene-btn" data-scene="arctic" onclick="selectScene('arctic')">❄️ Arctic</button>
-      <button class="scene-btn" data-scene="savanna" onclick="selectScene('savanna')">☀️ Savanna</button>
-    </div>
-
-    <!-- Sticker canvas area -->
-    <div class="sticker-canvas-area" id="stickerCanvasArea">
-      <!-- Background scene decorations rendered here -->
-      <div class="sticker-scene-bg" id="stickerSceneBg"></div>
-      <!-- Placed stickers rendered here -->
-      <div class="sticker-placed-layer" id="stickerPlacedLayer"></div>
-      <!-- Empty state hint -->
-      <div class="sticker-empty-hint" id="stickerEmptyHint">👆 Tap an animal below to place it here!</div>
-    </div>
-
-    <!-- Sticker action bar -->
-    <div class="sticker-actions">
-      <button class="sketch-action-btn" onclick="undoSticker()">↩️ Undo</button>
-      <button class="sketch-action-btn" onclick="clearStickers()">🗑️ Clear All</button>
-      <span class="sticker-count" id="stickerCount">🐾 0 animals placed</span>
-    </div>
-
-    <!-- Animal sticker tray -->
-    <div class="sticker-tray" id="stickerTray"></div>
-  </div>
+  <!-- ===== NUMBERS HUB ===== -->
+  <div class="numbers-section hidden" id="numbersSection"></div>
 </div>
 
 <!-- ===== DETAIL PAGE ===== -->
@@ -1508,6 +1551,23 @@
   let popSpawnTimers = [];
   let popRoundComplete = false;
 
+  // Numbers state
+  let numbersMode = 'count';
+  let numbersCountRound = 0;
+  let numbersCountScore = 0;
+  let numbersMatchCards = [];
+  let numbersMatchFirst = null;
+  let numbersMatchSecond = null;
+  let numbersMatchLock = false;
+  let numbersMatchFound = 0;
+  let numbersTraceCurrent = 1;
+  let numbersTraceDone = new Set();
+  let numbersTraceCanvas = null;
+  let numbersTraceCtx = null;
+  let numbersTraceDrawing = false;
+  let numbersTraceLastX = 0;
+  let numbersTraceLastY = 0;
+
   // Sketch state
   let sketchShuffledLetters = [];       // Randomized order of letters
   let sketchQueueIndex = 0;             // Current position in shuffled queue
@@ -1559,6 +1619,7 @@
   const phonicsSection     = document.getElementById('phonicsSection');
   const feedSection        = document.getElementById('feedSection');
   const popSection         = document.getElementById('popSection');
+  const numbersSection     = document.getElementById('numbersSection');
   const sketchSection      = document.getElementById('sketchSection');
   const completionOverlay  = document.getElementById('completionOverlay');
   const sceneSky           = document.getElementById('sceneSky');
@@ -1790,7 +1851,7 @@
     document.getElementById('tabFeed').classList.toggle('active', tab === 'feed');
     document.getElementById('tabPop').classList.toggle('active', tab === 'pop');
     document.getElementById('tabSpell').classList.toggle('active', tab === 'spell');
-    document.getElementById('tabStickers').classList.toggle('active', tab === 'stickers');
+    document.getElementById('tabNumbers').classList.toggle('active', tab === 'numbers');
 
     letterGrid.style.display = tab === 'letters' ? '' : 'none';
     sketchSection.classList.toggle('hidden', tab !== 'sketch');
@@ -1800,7 +1861,7 @@
     feedSection.classList.toggle('hidden', tab !== 'feed');
     popSection.classList.toggle('hidden', tab !== 'pop');
     document.getElementById('spellSection').classList.toggle('hidden', tab !== 'spell');
-    stickerSection.classList.toggle('hidden', tab !== 'stickers');
+    numbersSection.classList.toggle('hidden', tab !== 'numbers');
 
     if (tab !== 'pop') cleanupPopGame();
 
@@ -1811,7 +1872,7 @@
     if (tab === 'feed') { if (typeof startFeedGame === 'function') startFeedGame(); }
     if (tab === 'pop') { if (typeof startPopGame === 'function') startPopGame(); }
     if (tab === 'spell') { if (typeof startSpell === 'function') startSpell(); }
-    if (tab === 'stickers') initStickerBook();
+    if (tab === 'numbers') { if (typeof startNumbersHub === 'function') startNumbersHub(); }
 
     playTapSound();
   }
@@ -1852,13 +1913,6 @@
     switchTab('letters', true);
     updateProgress();
     
-    try {
-      if (typeof buildSceneSelector === 'function') buildSceneSelector();
-    } catch (e) {}
-    
-    document.getElementById('stickerCount').innerText = currentMode === 'animals' ? '🐾 0 animals placed' : '🌟 0 items placed';
-    document.getElementById('stickerEmptyHint').innerText = currentMode === 'animals' ? '👆 Tap an animal below to place it here!' : '👆 Tap an item below to place it here!';
-    
     // Update Habitat Card terminology
     const title = document.querySelector('.habitat-card-title');
     if (title) {
@@ -1871,9 +1925,7 @@
       const sketchDone = document.getElementById('sketchDoneCount');
       if (sketchDone) sketchDone.innerText = '0';
     } catch(e) {}
-    
-    try { clearStickers(); } catch (e) {}
-    
+
     playTapSound();
   }
 
@@ -3216,6 +3268,314 @@
   function nextPopRound() {
     popRound++;
     startPopRound();
+  }
+
+  // ============================================================
+  // NUMBERS HUB
+  // ============================================================
+
+  function startNumbersHub() {
+    renderNumbersHub();
+  }
+
+  function setNumbersMode(mode) {
+    numbersMode = mode;
+    renderNumbersHub();
+  }
+
+  function renderNumbersHub() {
+    numbersSection.innerHTML = `
+      <div class="numbers-shell">
+        <div class="numbers-title">🔢 Number Time!</div>
+        <div class="numbers-subtitle">Count, match, and trace numbers 1 to 10.</div>
+        <div class="numbers-mode-switcher">
+          <button class="numbers-mode-btn ${numbersMode === 'count' ? 'active' : ''}" onclick="setNumbersMode('count')">🐾 Count</button>
+          <button class="numbers-mode-btn ${numbersMode === 'match' ? 'active' : ''}" onclick="setNumbersMode('match')">🧩 Match</button>
+          <button class="numbers-mode-btn ${numbersMode === 'trace' ? 'active' : ''}" onclick="setNumbersMode('trace')">✏️ Trace</button>
+        </div>
+        <div id="numbersBody"></div>
+      </div>
+    `;
+
+    if (numbersMode === 'count') startCountAnimals();
+    else if (numbersMode === 'match') startNumberMatch();
+    else startTraceNumbers();
+  }
+
+  function numberWord(n) {
+    return ['zero','one','two','three','four','five','six','seven','eight','nine','ten'][n] || String(n);
+  }
+
+  function getNumbersBody() {
+    return document.getElementById('numbersBody');
+  }
+
+  // Count animals
+  function startCountAnimals(reset = true) {
+    if (reset) {
+      numbersCountRound = 1;
+      numbersCountScore = 0;
+    }
+    renderCountAnimalsRound();
+  }
+
+  function renderCountAnimalsRound() {
+    const body = getNumbersBody();
+    if (!body) return;
+
+    if (numbersCountRound > 8) {
+      body.innerHTML = `
+        <div class="quiz-complete">
+          <div class="trophy">🔢</div>
+          <h2>Counting Star!</h2>
+          <p>You counted ${numbersCountScore} groups!</p>
+          <button onclick="startCountAnimals(true)">🔄 Play Again</button>
+        </div>
+      `;
+      speakPraise('You are a counting star!');
+      return;
+    }
+
+    const answer = 1 + Math.floor(Math.random() * 5);
+    const letter = LETTERS[Math.floor(Math.random() * LETTERS.length)];
+    const d = DATA[letter];
+    const wrongNums = shuffleArray([1,2,3,4,5].filter(n => n !== answer)).slice(0, 3);
+    const choices = shuffleArray([answer, ...wrongNums]);
+
+    body.innerHTML = `
+      <div class="numbers-score-bar">
+        <span>⭐ Score: ${numbersCountScore}</span>
+        <span>📝 ${numbersCountRound} / 8</span>
+      </div>
+      <div class="numbers-prompt">How many ${d.animal.toLowerCase()}s do you see?</div>
+      <div class="numbers-hint">Count them, then tap the number.</div>
+      <div class="numbers-count-row">${Array.from({length: answer}, () => `<span class="numbers-count-item">${d.emoji}</span>`).join('')}</div>
+      <div class="numbers-choices">
+        ${choices.map(n => `<button class="numbers-choice" data-number="${n}" style="background:${DATA[LETTERS[(n*3)%26]].color}">${n}</button>`).join('')}
+      </div>
+      <div class="numbers-reveal" id="numbersCountReveal"></div>
+    `;
+
+    body.querySelectorAll('.numbers-choice').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const chosen = Number(btn.dataset.number);
+        const reveal = document.getElementById('numbersCountReveal');
+        if (chosen === answer) {
+          numbersCountScore++;
+          btn.classList.add('correct');
+          playSuccessSound();
+          reveal.textContent = `${answer}! Great counting!`;
+          speakPraise(`${answer}! Great counting!`);
+        } else {
+          btn.classList.add('wrong');
+          playWrongSound();
+          reveal.textContent = `Let's count again. There are ${answer}.`;
+          speakCorrection(`There are ${answer}.`);
+        }
+        body.querySelectorAll('.numbers-choice').forEach(b => b.disabled = true);
+        setTimeout(() => {
+          numbersCountRound++;
+          renderCountAnimalsRound();
+        }, 1400);
+      });
+    });
+
+    setTimeout(() => speakText(`How many ${d.animal.toLowerCase()}s do you see?`), 250);
+  }
+
+  // Number match
+  function startNumberMatch() {
+    const body = getNumbersBody();
+    if (!body) return;
+    numbersMatchCards = [];
+    numbersMatchFirst = null;
+    numbersMatchSecond = null;
+    numbersMatchLock = false;
+    numbersMatchFound = 0;
+
+    const nums = shuffleArray([1,2,3,4,5,6]).slice(0, 6);
+    nums.forEach(n => {
+      numbersMatchCards.push({ type: 'digit', value: n, display: String(n), say: String(n) });
+      numbersMatchCards.push({ type: 'qty', value: n, display: '⭐'.repeat(n), say: numberWord(n) });
+    });
+    numbersMatchCards = shuffleArray(numbersMatchCards);
+
+    body.innerHTML = `
+      <div class="numbers-score-bar">
+        <span>🧩 Matches: <span id="numbersMatchScore">0</span> / 6</span>
+      </div>
+      <div class="numbers-prompt">Match the number to the right amount!</div>
+      <div class="numbers-hint">Find number friends that belong together.</div>
+      <div class="numbers-match-grid" id="numbersMatchGrid"></div>
+    `;
+
+    const grid = document.getElementById('numbersMatchGrid');
+    numbersMatchCards.forEach((card, i) => {
+      const el = document.createElement('div');
+      el.className = 'numbers-match-card';
+      el.dataset.index = i;
+      el.innerHTML = `
+        <div class="numbers-match-front"></div>
+        <div class="numbers-match-back"><div class="numbers-match-text ${card.type === 'qty' ? 'numbers-match-qty' : ''}">${card.display}</div></div>
+      `;
+      el.addEventListener('click', () => flipNumberMatchCard(el, card));
+      grid.appendChild(el);
+    });
+  }
+
+  function flipNumberMatchCard(el, card) {
+    if (numbersMatchLock || el.classList.contains('flipped') || el.classList.contains('matched')) return;
+    playTapSound();
+    el.classList.add('flipped');
+    speakText(card.say);
+
+    if (!numbersMatchFirst) {
+      numbersMatchFirst = { el, card };
+      return;
+    }
+
+    numbersMatchSecond = { el, card };
+    numbersMatchLock = true;
+
+    if (numbersMatchFirst.card.value === numbersMatchSecond.card.value && numbersMatchFirst.card.type !== numbersMatchSecond.card.type) {
+      numbersMatchFound++;
+      document.getElementById('numbersMatchScore').textContent = numbersMatchFound;
+      setTimeout(() => {
+        playSuccessSound();
+        numbersMatchFirst.el.classList.add('matched');
+        numbersMatchSecond.el.classList.add('matched');
+        numbersMatchFirst = null;
+        numbersMatchSecond = null;
+        numbersMatchLock = false;
+        if (numbersMatchFound === 6) {
+          const body = getNumbersBody();
+          if (body) body.innerHTML = `
+            <div class="quiz-complete">
+              <div class="trophy">🧩</div>
+              <h2>Number Match Winner!</h2>
+              <p>You matched all the number pairs!</p>
+              <button onclick="startNumberMatch()">🔄 Play Again</button>
+            </div>
+          `;
+          launchConfetti();
+          speakPraise('You matched all the number pairs!');
+        }
+      }, 450);
+    } else {
+      setTimeout(() => {
+        playWrongSound();
+        numbersMatchFirst.el.classList.remove('flipped');
+        numbersMatchSecond.el.classList.remove('flipped');
+        numbersMatchFirst = null;
+        numbersMatchSecond = null;
+        numbersMatchLock = false;
+      }, 900);
+    }
+  }
+
+  // Trace numbers
+  function startTraceNumbers() {
+    const body = getNumbersBody();
+    if (!body) return;
+
+    body.innerHTML = `
+      <div class="numbers-score-bar">
+        <span>✏️ Traced: ${numbersTraceDone.size} / 10</span>
+        <span>🔢 Number ${numbersTraceCurrent}</span>
+      </div>
+      <div class="numbers-prompt">Trace the number ${numbersTraceCurrent}</div>
+      <div class="numbers-hint">Use your finger to draw on the big number.</div>
+      <div class="numbers-trace-wrap">
+        <div class="numbers-trace-canvas-wrap" id="numbersTraceWrap">
+          <div class="numbers-trace-guide" id="numbersTraceGuide">${numbersTraceCurrent}</div>
+          <canvas class="numbers-trace-canvas" id="numbersTraceCanvas"></canvas>
+        </div>
+        <div class="numbers-reveal" id="numbersTraceReveal">Start tracing! ✏️</div>
+        <div class="numbers-trace-toolbar">
+          <button class="sketch-action-btn" onclick="clearNumberTrace()">🗑️ Clear</button>
+          <button class="sketch-action-btn" onclick="markNumberTraced()">🌟 I Did It</button>
+          <button class="sketch-action-btn" onclick="prevNumberTrace()">⬅️ Back</button>
+          <button class="sketch-action-btn" onclick="nextNumberTrace()">➡️ Next</button>
+        </div>
+      </div>
+    `;
+
+    setupNumberTraceCanvas();
+    setTimeout(() => speakText(`Trace the number ${numbersTraceCurrent}`), 250);
+  }
+
+  function setupNumberTraceCanvas() {
+    numbersTraceCanvas = document.getElementById('numbersTraceCanvas');
+    if (!numbersTraceCanvas) return;
+    const wrap = document.getElementById('numbersTraceWrap');
+    const rect = wrap.getBoundingClientRect();
+    numbersTraceCanvas.width = rect.width * devicePixelRatio;
+    numbersTraceCanvas.height = rect.height * devicePixelRatio;
+    numbersTraceCanvas.style.width = rect.width + 'px';
+    numbersTraceCanvas.style.height = rect.height + 'px';
+    numbersTraceCtx = numbersTraceCanvas.getContext('2d');
+    numbersTraceCtx.scale(devicePixelRatio, devicePixelRatio);
+    numbersTraceCtx.lineCap = 'round';
+    numbersTraceCtx.lineJoin = 'round';
+    numbersTraceCtx.strokeStyle = '#FF6B6B';
+    numbersTraceCtx.lineWidth = 16;
+
+    const getPos = e => {
+      const r = numbersTraceCanvas.getBoundingClientRect();
+      const p = e.touches ? e.touches[0] : e;
+      return { x: p.clientX - r.left, y: p.clientY - r.top };
+    };
+
+    const start = e => {
+      e.preventDefault();
+      numbersTraceDrawing = true;
+      const p = getPos(e);
+      numbersTraceLastX = p.x; numbersTraceLastY = p.y;
+    };
+    const move = e => {
+      if (!numbersTraceDrawing) return;
+      e.preventDefault();
+      const p = getPos(e);
+      numbersTraceCtx.beginPath();
+      numbersTraceCtx.moveTo(numbersTraceLastX, numbersTraceLastY);
+      numbersTraceCtx.lineTo(p.x, p.y);
+      numbersTraceCtx.stroke();
+      numbersTraceLastX = p.x; numbersTraceLastY = p.y;
+    };
+    const end = () => { numbersTraceDrawing = false; };
+
+    numbersTraceCanvas.addEventListener('mousedown', start);
+    numbersTraceCanvas.addEventListener('mousemove', move);
+    window.addEventListener('mouseup', end, { once: true });
+    numbersTraceCanvas.addEventListener('touchstart', start, { passive: false });
+    numbersTraceCanvas.addEventListener('touchmove', move, { passive: false });
+    numbersTraceCanvas.addEventListener('touchend', end);
+  }
+
+  function clearNumberTrace() {
+    if (!numbersTraceCtx || !numbersTraceCanvas) return;
+    numbersTraceCtx.clearRect(0, 0, numbersTraceCanvas.width, numbersTraceCanvas.height);
+    const reveal = document.getElementById('numbersTraceReveal');
+    if (reveal) reveal.textContent = 'Try again! ✏️';
+    playTapSound();
+  }
+
+  function markNumberTraced() {
+    numbersTraceDone.add(numbersTraceCurrent);
+    const reveal = document.getElementById('numbersTraceReveal');
+    if (reveal) reveal.textContent = `Great job tracing ${numbersTraceCurrent}!`;
+    playSuccessSound();
+    speakPraise(`Great job tracing ${numbersTraceCurrent}!`);
+  }
+
+  function prevNumberTrace() {
+    numbersTraceCurrent = Math.max(1, numbersTraceCurrent - 1);
+    startTraceNumbers();
+  }
+
+  function nextNumberTrace() {
+    if (numbersTraceCurrent < 10) numbersTraceCurrent++;
+    startTraceNumbers();
   }
 
   // ============================================================
