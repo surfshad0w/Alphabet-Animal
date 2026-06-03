@@ -729,14 +729,18 @@
     .numbers-match-qty { letter-spacing: 1px; }
     .numbers-trace-wrap { display: flex; flex-direction: column; align-items: center; }
     .numbers-trace-canvas-wrap {
-      position: relative; width: min(82vw, 360px); height: min(82vw, 360px); border-radius: 24px; overflow: hidden;
+      position: relative; width: min(85vw, 400px); height: min(85vw, 400px); border-radius: 24px; overflow: hidden;
       background: white; box-shadow: 0 4px 20px rgba(0,0,0,0.08); margin-bottom: 0.75rem; touch-action: none;
     }
+    .numbers-trace-canvas-wrap.verified { box-shadow: 0 4px 30px rgba(78, 205, 196, 0.4); }
     .numbers-trace-guide {
-      position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: min(55vw, 250px);
+      position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: min(58vw, 270px);
       color: rgba(0,0,0,0.08); font-weight: 800; pointer-events: none;
     }
-    .numbers-trace-canvas { position: absolute; inset: 0; z-index: 2; }
+    .numbers-trace-guide.verified-glow { color: rgba(78, 205, 196, 0.15); }
+    .numbers-trace-canvas { position: absolute; inset: 0; z-index: 2; cursor: crosshair; }
+    .numbers-trace-coverage { width: min(85vw, 400px); }
+    .numbers-trace-feedback { margin-bottom: 0.65rem; }
     .numbers-trace-toolbar { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
 
     @keyframes pop-float {
@@ -1582,11 +1586,7 @@
   let numbersMatchFound = 0;
   let numbersTraceCurrent = 1;
   let numbersTraceDone = new Set();
-  let numbersTraceCanvas = null;
-  let numbersTraceCtx = null;
-  let numbersTraceDrawing = false;
-  let numbersTraceLastX = 0;
-  let numbersTraceLastY = 0;
+  let numbersTraceAdvanceTimer = null;
 
   // Sketch state
   let sketchShuffledLetters = [];       // Randomized order of letters
@@ -1595,15 +1595,9 @@
   let sketchCase = 'upper';
   let sketchColor = '#FF6B6B';
   let sketchLineWidth = 30;
-  let sketchIsDrawing = false;
-  let sketchPaths = [];
-  let sketchCurrentPath = [];
-  let sketchCelebrated = false;         // Prevents double-celebration per letter
 
   // Coverage verification
-  const COVERAGE_THRESHOLD = 0.55;       // 55% coverage required — trace most of the letter!
-  let cachedGuideData = null;            // Cached guide letter pixel data
-  let cachedGuideKey = '';               // Cache key (letter + case)
+  const COVERAGE_THRESHOLD = 0.55;       // 55% coverage required - trace most of the guide!
 
   // ============================================================
   // DOM REFERENCES
@@ -1655,6 +1649,45 @@
   const coverageFill       = document.getElementById('coverageFill');
   const coverageThreshold  = document.getElementById('coverageThreshold');
   const sketchFeedback     = document.getElementById('sketchFeedback');
+
+  const sketchTrace = createTraceController({
+    getElements: () => ({
+      canvas: sketchCanvas,
+      ctx: sketchCtx,
+      wrapper: sketchCanvasWrapper,
+      guide: sketchGuideLetter,
+      coveragePct,
+      coverageFill,
+      coverageThreshold,
+      feedback: sketchFeedback,
+      celebration: sketchCelebration
+    }),
+    getTarget: () => getCurrentSketchDisplay(),
+    getColor: () => sketchColor,
+    getLineWidth: () => sketchLineWidth,
+    targetNoun: 'letter',
+    feedbackClass: 'sketch-feedback',
+    onSuccess: (coverage) => celebrateSketchSuccess(coverage)
+  });
+
+  const numberTrace = createTraceController({
+    getElements: () => ({
+      canvas: document.getElementById('numbersTraceCanvas'),
+      wrapper: document.getElementById('numbersTraceWrap'),
+      guide: document.getElementById('numbersTraceGuide'),
+      coveragePct: document.getElementById('numbersCoveragePct'),
+      coverageFill: document.getElementById('numbersCoverageFill'),
+      coverageThreshold: document.getElementById('numbersCoverageThreshold'),
+      feedback: document.getElementById('numbersTraceFeedback'),
+      celebration: document.getElementById('numbersTraceCelebration')
+    }),
+    getTarget: () => String(numbersTraceCurrent),
+    getColor: () => '#FF6B6B',
+    getLineWidth: () => 30,
+    targetNoun: 'number',
+    feedbackClass: 'sketch-feedback numbers-trace-feedback',
+    onSuccess: (coverage) => celebrateNumberTraceSuccess(coverage)
+  });
 
   // ============================================================
   // WEB AUDIO — Sound effects
@@ -1974,7 +2007,7 @@
   }
 
   // ============================================================
-  // SKETCH MODE — Finger tracing with verification
+  // SKETCH MODE - shared finger tracing with verification
   // ============================================================
 
   /** Fisher-Yates shuffle */
@@ -1987,9 +2020,398 @@
     return shuffled;
   }
 
-  /** Initialize sketch tab — shuffle letters, reset state */
+  function getTraceFeedback(coverage, noun = 'guide') {
+    const pct = coverage * 100;
+    if (pct < 5) return { text: `Trace over the ${noun}! 🖐️`, tone: '' };
+    if (pct < 15) return { text: 'Good start! Keep tracing! ✏️', tone: 'encouraging' };
+    if (pct < 30) return { text: 'Nice work! Keep going! 🖍️', tone: 'encouraging' };
+    if (pct < 45) return { text: 'Halfway there! You can do it! 💪', tone: 'encouraging' };
+    if (pct < 55) return { text: 'Looking great! A little more! 🌟', tone: 'almost' };
+    if (pct < 65) return { text: 'So close! Almost done! ⭐', tone: 'almost' };
+    return { text: '', tone: 'success' };
+  }
+
+  function createTraceController(config) {
+    const state = {
+      canvas: null,
+      ctx: null,
+      paths: [],
+      currentPath: null,
+      isDrawing: false,
+      celebrated: false,
+      cachedGuideData: null,
+      cachedGuideKey: '',
+      boundCanvas: null
+    };
+
+    function getElements() {
+      const elements = config.getElements();
+      if (elements.canvas && !elements.ctx) {
+        elements.ctx = elements.canvas.getContext('2d');
+      }
+      return elements;
+    }
+
+    function getTargetText() {
+      const target = config.getTarget();
+      return target == null ? '' : String(target);
+    }
+
+    function getRect(elements) {
+      if (elements.wrapper) return elements.wrapper.getBoundingClientRect();
+      if (elements.canvas) return elements.canvas.getBoundingClientRect();
+      return { width: 0, height: 0 };
+    }
+
+    function invalidateGuide() {
+      state.cachedGuideData = null;
+      state.cachedGuideKey = '';
+    }
+
+    function setThresholdMarker() {
+      const elements = getElements();
+      if (elements.coverageThreshold) {
+        elements.coverageThreshold.style.left = (COVERAGE_THRESHOLD * 100) + '%';
+      }
+    }
+
+    function setFeedback(text, tone = '') {
+      const elements = getElements();
+      if (!elements.feedback) return;
+      elements.feedback.textContent = text;
+      elements.feedback.className = [config.feedbackClass, tone].filter(Boolean).join(' ');
+    }
+
+    function hideCelebration() {
+      const elements = getElements();
+      if (elements.celebration) elements.celebration.classList.remove('visible');
+      if (elements.wrapper) elements.wrapper.classList.remove('verified');
+      if (elements.guide) elements.guide.classList.remove('verified-glow');
+      state.celebrated = false;
+    }
+
+    function updateCoverageDisplay(coverage) {
+      const elements = getElements();
+      const pct = Math.round(coverage * 100);
+      if (elements.coveragePct) {
+        elements.coveragePct.textContent = pct + '%';
+        elements.coveragePct.classList.remove('good', 'great');
+      }
+      if (elements.coverageFill) {
+        elements.coverageFill.style.width = Math.min(pct, 100) + '%';
+        elements.coverageFill.classList.remove('good', 'great');
+      }
+
+      if (coverage >= COVERAGE_THRESHOLD) {
+        if (elements.coverageFill) elements.coverageFill.classList.add('great');
+        if (elements.coveragePct) elements.coveragePct.classList.add('great');
+      } else if (coverage >= COVERAGE_THRESHOLD * 0.6) {
+        if (elements.coverageFill) elements.coverageFill.classList.add('good');
+        if (elements.coveragePct) elements.coveragePct.classList.add('good');
+      }
+    }
+
+    function updateFeedbackMessage(coverage) {
+      const feedback = getTraceFeedback(coverage, config.targetNoun);
+      setFeedback(feedback.text, feedback.tone);
+    }
+
+    function resize() {
+      const elements = getElements();
+      if (!elements.canvas) return;
+
+      const rect = getRect(elements);
+      if (!rect.width || !rect.height) return;
+
+      const dpr = window.devicePixelRatio || 1;
+      state.canvas = elements.canvas;
+      state.ctx = elements.ctx;
+      state.canvas.width = Math.max(1, Math.round(rect.width * dpr));
+      state.canvas.height = Math.max(1, Math.round(rect.height * dpr));
+      state.canvas.style.width = rect.width + 'px';
+      state.canvas.style.height = rect.height + 'px';
+
+      if (state.ctx.setTransform) {
+        state.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      } else {
+        state.ctx.scale(dpr, dpr);
+      }
+      state.ctx.lineCap = 'round';
+      state.ctx.lineJoin = 'round';
+
+      invalidateGuide();
+      bindCanvasEvents();
+      setThresholdMarker();
+      redraw();
+    }
+
+    function bindCanvasEvents() {
+      if (!state.canvas || state.boundCanvas === state.canvas) return;
+      state.boundCanvas = state.canvas;
+
+      state.canvas.addEventListener('touchstart', onDrawStart, { passive: false });
+      state.canvas.addEventListener('touchmove', onDrawMove, { passive: false });
+      state.canvas.addEventListener('touchend', onDrawEnd);
+      state.canvas.addEventListener('touchcancel', onDrawEnd);
+      state.canvas.addEventListener('mousedown', onDrawStart);
+      state.canvas.addEventListener('mousemove', onDrawMove);
+      state.canvas.addEventListener('mouseup', onDrawEnd);
+      state.canvas.addEventListener('mouseleave', onDrawEnd);
+    }
+
+    function getCanvasPos(e) {
+      const rect = state.canvas.getBoundingClientRect();
+      const pointer = e.touches ? e.touches[0] : e;
+      return {
+        x: pointer.clientX - rect.left,
+        y: pointer.clientY - rect.top
+      };
+    }
+
+    function drawDot(point, path) {
+      state.ctx.fillStyle = path.color;
+      state.ctx.beginPath();
+      state.ctx.arc(point.x, point.y, path.lineWidth / 2, 0, Math.PI * 2);
+      state.ctx.fill();
+    }
+
+    function drawPath(path) {
+      if (!path.points.length) return;
+      if (path.points.length === 1) {
+        drawDot(path.points[0], path);
+        return;
+      }
+
+      state.ctx.strokeStyle = path.color;
+      state.ctx.lineWidth = path.lineWidth;
+      state.ctx.lineCap = 'round';
+      state.ctx.lineJoin = 'round';
+      state.ctx.beginPath();
+      state.ctx.moveTo(path.points[0].x, path.points[0].y);
+      for (let i = 1; i < path.points.length; i++) {
+        state.ctx.lineTo(path.points[i].x, path.points[i].y);
+      }
+      state.ctx.stroke();
+    }
+
+    function redraw() {
+      const elements = getElements();
+      if (!elements.canvas || !elements.ctx) return;
+      state.canvas = elements.canvas;
+      state.ctx = elements.ctx;
+      const rect = getRect(elements);
+      state.ctx.clearRect(0, 0, rect.width, rect.height);
+      state.paths.forEach(drawPath);
+    }
+
+    function getGuideImageData() {
+      const elements = getElements();
+      if (!elements.canvas || !elements.wrapper || !elements.guide) return null;
+
+      const rect = getRect(elements);
+      const dpr = window.devicePixelRatio || 1;
+      const w = Math.max(1, Math.round(rect.width * dpr));
+      const h = Math.max(1, Math.round(rect.height * dpr));
+      const guideStyle = getComputedStyle(elements.guide);
+      const computedSize = parseFloat(guideStyle.fontSize) || rect.width * 0.65;
+      const fontFamily = guideStyle.fontFamily || 'system-ui, sans-serif';
+      const fontWeight = guideStyle.fontWeight || '500';
+      const key = [
+        config.feedbackClass,
+        getTargetText(),
+        w,
+        h,
+        dpr,
+        computedSize,
+        fontFamily,
+        fontWeight
+      ].join('|');
+
+      if (state.cachedGuideKey === key && state.cachedGuideData) {
+        return state.cachedGuideData;
+      }
+
+      const off = document.createElement('canvas');
+      off.width = w;
+      off.height = h;
+      const ctx = off.getContext('2d');
+      ctx.scale(dpr, dpr);
+      ctx.font = `${fontWeight} ${computedSize}px ${fontFamily}`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = '#000';
+      ctx.fillText(getTargetText(), rect.width / 2, rect.height / 2);
+      ctx.strokeStyle = '#000';
+      ctx.lineWidth = 12;
+      ctx.lineJoin = 'round';
+      ctx.lineCap = 'round';
+      ctx.strokeText(getTargetText(), rect.width / 2, rect.height / 2);
+
+      state.cachedGuideData = ctx.getImageData(0, 0, w, h);
+      state.cachedGuideKey = key;
+      return state.cachedGuideData;
+    }
+
+    function calculateCoverage() {
+      if (!state.canvas || !state.ctx) return 0;
+      const guideData = getGuideImageData();
+      if (!guideData) return 0;
+
+      const userData = state.ctx.getImageData(0, 0, state.canvas.width, state.canvas.height);
+      const w = state.canvas.width;
+      const h = state.canvas.height;
+      const step = 4;
+      let guidePixels = 0;
+      let coveredPixels = 0;
+
+      for (let y = 0; y < h; y += step) {
+        for (let x = 0; x < w; x += step) {
+          const idx = (y * w + x) * 4;
+          if (guideData.data[idx + 3] > 50) {
+            guidePixels++;
+            if (userData.data[idx + 3] > 30) coveredPixels++;
+          }
+        }
+      }
+
+      return guidePixels > 0 ? coveredPixels / guidePixels : 0;
+    }
+
+    function checkCoverageAfterStroke() {
+      if (state.celebrated || state.paths.length === 0) return;
+      const coverage = calculateCoverage();
+      updateCoverageDisplay(coverage);
+      updateFeedbackMessage(coverage);
+      if (coverage >= COVERAGE_THRESHOLD) {
+        celebrateSuccess(coverage);
+      }
+    }
+
+    function celebrateSuccess(coverage) {
+      if (state.celebrated) return;
+      state.celebrated = true;
+      const elements = getElements();
+      if (elements.wrapper) elements.wrapper.classList.add('verified');
+      if (elements.guide) elements.guide.classList.add('verified-glow');
+      updateCoverageDisplay(coverage);
+      config.onSuccess(coverage, api);
+    }
+
+    function onDrawStart(e) {
+      if (state.celebrated) return;
+      e.preventDefault();
+      state.isDrawing = true;
+      const pos = getCanvasPos(e);
+      state.currentPath = {
+        color: config.getColor(),
+        lineWidth: config.getLineWidth(),
+        points: [pos]
+      };
+      drawDot(pos, state.currentPath);
+    }
+
+    function onDrawMove(e) {
+      if (!state.isDrawing || state.celebrated) return;
+      e.preventDefault();
+      const pos = getCanvasPos(e);
+      const points = state.currentPath.points;
+      const prev = points[points.length - 1];
+      points.push(pos);
+
+      state.ctx.strokeStyle = state.currentPath.color;
+      state.ctx.lineWidth = state.currentPath.lineWidth;
+      state.ctx.lineCap = 'round';
+      state.ctx.lineJoin = 'round';
+      state.ctx.beginPath();
+      state.ctx.moveTo(prev.x, prev.y);
+      state.ctx.lineTo(pos.x, pos.y);
+      state.ctx.stroke();
+    }
+
+    function onDrawEnd() {
+      if (!state.isDrawing) return;
+      state.isDrawing = false;
+      if (state.currentPath && state.currentPath.points.length > 0) {
+        state.paths.push(state.currentPath);
+      }
+      state.currentPath = null;
+      checkCoverageAfterStroke();
+    }
+
+    function clear(feedbackText = 'Start tracing! ✏️') {
+      state.paths = [];
+      state.currentPath = null;
+      state.isDrawing = false;
+      hideCelebration();
+      redraw();
+      updateCoverageDisplay(0);
+      setFeedback(feedbackText);
+    }
+
+    function undo() {
+      if (state.paths.length === 0) return false;
+      state.paths.pop();
+      hideCelebration();
+      redraw();
+
+      if (state.paths.length > 0) {
+        const coverage = calculateCoverage();
+        updateCoverageDisplay(coverage);
+        updateFeedbackMessage(coverage);
+      } else {
+        updateCoverageDisplay(0);
+        setFeedback('Start tracing! ✏️');
+      }
+      return true;
+    }
+
+    function resetForTarget() {
+      invalidateGuide();
+      clear();
+    }
+
+    function showCelebration({ emoji, text, sub, score }) {
+      const elements = getElements();
+      if (!elements.celebration) return;
+      const emojiEl = elements.celebration.querySelector('.celeb-emoji');
+      const textEl = elements.celebration.querySelector('.celeb-text');
+      const subEl = elements.celebration.querySelector('.celeb-sub');
+      const scoreEl = elements.celebration.querySelector('.celeb-score');
+      if (emojiEl) emojiEl.textContent = emoji || '🌟';
+      if (textEl) textEl.textContent = text || 'Great job!';
+      if (subEl) subEl.textContent = sub || '';
+      if (scoreEl) scoreEl.textContent = score || '';
+      elements.celebration.classList.add('visible');
+    }
+
+    const api = {
+      resize,
+      clear,
+      undo,
+      resetForTarget,
+      redraw,
+      calculateCoverage,
+      updateCoverageDisplay,
+      updateFeedbackMessage,
+      showCelebration,
+      setFeedback,
+      invalidateGuide,
+      setThresholdMarker
+    };
+    return api;
+  }
+
+  function getCurrentSketchLetter() {
+    return sketchShuffledLetters[sketchQueueIndex] || LETTERS[0];
+  }
+
+  function getCurrentSketchDisplay() {
+    const letter = getCurrentSketchLetter();
+    return sketchCase === 'upper' ? letter : letter.toLowerCase();
+  }
+
+  /** Initialize sketch tab - shuffle letters, reset state */
   function initSketch() {
-    // Only reshuffle if we haven't started or completed all
     if (sketchShuffledLetters.length === 0 || sketchCompletedSet.size >= 26) {
       sketchShuffledLetters = shuffleArray(LETTERS);
       sketchQueueIndex = 0;
@@ -2000,31 +2422,13 @@
     buildSketchToolbar();
     updateSketchUI();
     clearSketch();
-
-    // Position the threshold marker
-    coverageThreshold.style.left = (COVERAGE_THRESHOLD * 100) + '%';
   }
 
-  /** Resize canvas to match wrapper dimensions */
   function resizeSketchCanvas() {
-    const rect = sketchCanvasWrapper.getBoundingClientRect();
-    const dpr = window.devicePixelRatio || 1;
-    sketchCanvas.width = rect.width * dpr;
-    sketchCanvas.height = rect.height * dpr;
-    sketchCanvas.style.width = rect.width + 'px';
-    sketchCanvas.style.height = rect.height + 'px';
-    sketchCtx.scale(dpr, dpr);
-    sketchCtx.lineCap = 'round';
-    sketchCtx.lineJoin = 'round';
-
-    // Invalidate guide cache since dimensions changed
-    cachedGuideKey = '';
-    cachedGuideData = null;
-
-    redrawSketch();
+    sketchTrace.resize();
   }
 
-  /** Build color palette (single thick brush — no size options) */
+  /** Build color palette (single thick brush - no size options) */
   function buildSketchToolbar() {
     const toolbar = document.getElementById('sketchToolbar');
     const colors = [
@@ -2059,32 +2463,14 @@
 
   /** Update all sketch UI labels and guide letter */
   function updateSketchUI() {
-    const letter = sketchShuffledLetters[sketchQueueIndex];
-    const d = DATA[letter];
-    const displayLetter = sketchCase === 'upper' ? letter : letter.toLowerCase();
+    const displayLetter = getCurrentSketchDisplay();
 
     sketchGuideLetter.textContent = displayLetter;
     sketchGuideLetter.classList.toggle('lowercase', sketchCase === 'lower');
-    sketchGuideLetter.classList.remove('verified-glow');
     sketchLetterLabel.textContent = displayLetter;
     document.getElementById('sketchCurrentDisplay').textContent = displayLetter;
     document.getElementById('sketchDoneCount').textContent = sketchCompletedSet.size;
-
-    // Reset celebration flag for new letter
-    sketchCelebrated = false;
-
-    // Hide celebration overlay
-    sketchCelebration.classList.remove('visible');
-    sketchCanvasWrapper.classList.remove('verified');
-
-    // Reset coverage display
-    updateCoverageDisplay(0);
-    sketchFeedback.textContent = 'Start tracing! ✏️';
-    sketchFeedback.className = 'sketch-feedback';
-
-    // Invalidate guide cache (letter changed)
-    cachedGuideKey = '';
-    cachedGuideData = null;
+    sketchTrace.invalidateGuide();
   }
 
   /** Set upper/lower case */
@@ -2097,69 +2483,33 @@
     playTapSound();
   }
 
-  /** Clear the canvas and reset coverage */
   function clearSketch() {
-    sketchPaths = [];
-    sketchCurrentPath = [];
-    const rect = sketchCanvasWrapper.getBoundingClientRect();
-    sketchCtx.clearRect(0, 0, rect.width, rect.height);
-    sketchCelebration.classList.remove('visible');
-    sketchCanvasWrapper.classList.remove('verified');
-    sketchGuideLetter.classList.remove('verified-glow');
-    sketchCelebrated = false;
-    updateCoverageDisplay(0);
-    sketchFeedback.textContent = 'Start tracing! ✏️';
-    sketchFeedback.className = 'sketch-feedback';
+    sketchTrace.clear();
   }
 
-  /** Undo last stroke and recalculate coverage */
   function undoSketch() {
-    if (sketchPaths.length === 0) return;
-    sketchPaths.pop();
-    redrawSketch();
-    playTapSound();
-
-    // Recalculate coverage after undo
-    if (sketchPaths.length > 0) {
-      const coverage = calculateCoverage();
-      updateCoverageDisplay(coverage);
-      updateFeedbackMessage(coverage);
-    } else {
-      updateCoverageDisplay(0);
-      sketchFeedback.textContent = 'Start tracing! ✏️';
-      sketchFeedback.className = 'sketch-feedback';
-    }
-
-    // Reset celebration if coverage dropped
-    sketchCelebrated = false;
-    sketchCelebration.classList.remove('visible');
-    sketchCanvasWrapper.classList.remove('verified');
-    sketchGuideLetter.classList.remove('verified-glow');
+    if (sketchTrace.undo()) playTapSound();
   }
 
-  /** Redraw all stored paths */
   function redrawSketch() {
-    const rect = sketchCanvasWrapper.getBoundingClientRect();
-    sketchCtx.clearRect(0, 0, rect.width, rect.height);
-    sketchPaths.forEach(path => {
-      if (path.points.length < 2) return;
-      sketchCtx.strokeStyle = path.color;
-      sketchCtx.lineWidth = path.lineWidth;
-      sketchCtx.lineCap = 'round';
-      sketchCtx.lineJoin = 'round';
-      sketchCtx.beginPath();
-      sketchCtx.moveTo(path.points[0].x, path.points[0].y);
-      for (let i = 1; i < path.points.length; i++) {
-        sketchCtx.lineTo(path.points[i].x, path.points[i].y);
-      }
-      sketchCtx.stroke();
-    });
+    sketchTrace.redraw();
+  }
+
+  function calculateCoverage() {
+    return sketchTrace.calculateCoverage();
+  }
+
+  function updateCoverageDisplay(coverage) {
+    sketchTrace.updateCoverageDisplay(coverage);
+  }
+
+  function updateFeedbackMessage(coverage) {
+    sketchTrace.updateFeedbackMessage(coverage);
   }
 
   /** Randomize the crayon color for the next letter */
   function randomizeSketchColor() {
     const colors = ['#FF6B6B','#FF9F43','#FECA57','#48DBFB','#1DD1A1','#BB8FCE','#FF6FA7','#333333'];
-    // Pick a random color that's different from the current one
     let newColor;
     do {
       newColor = colors[Math.floor(Math.random() * colors.length)];
@@ -2167,19 +2517,15 @@
 
     sketchColor = newColor;
 
-    // Update the toolbar buttons visually using data-color attribute
     const toolbar = document.getElementById('sketchToolbar');
     if (toolbar) {
       toolbar.querySelectorAll('.sketch-color-btn').forEach(btn => {
         btn.classList.remove('active');
-        if (btn.dataset.color === sketchColor) {
-          btn.classList.add('active');
-        }
+        if (btn.dataset.color === sketchColor) btn.classList.add('active');
       });
     }
   }
 
-  /** Skip current letter and move to next */
   function skipSketchLetter() {
     playTapSound();
     advanceSketchLetter();
@@ -2190,12 +2536,10 @@
     if (sketchQueueIndex < sketchShuffledLetters.length - 1) {
       sketchQueueIndex++;
     } else {
-      // All letters attempted — check if all completed
       if (sketchCompletedSet.size >= 26) {
         showSketchComplete();
         return;
       }
-      // Reshuffle uncompleted letters
       const remaining = LETTERS.filter(l => !sketchCompletedSet.has(l));
       sketchShuffledLetters = shuffleArray(remaining);
       sketchQueueIndex = 0;
@@ -2207,16 +2551,16 @@
 
   /** Show completion message for sketch mode */
   function showSketchComplete() {
-    sketchCelebration.querySelector('.celeb-emoji').textContent = '🏆';
-    sketchCelebration.querySelector('.celeb-text').textContent = 'All 26 letters traced!';
-    sketchCelebration.querySelector('.celeb-sub').textContent = "You're an alphabet superstar!";
-    sketchCelebration.querySelector('.celeb-score').textContent = '';
-    sketchCelebration.classList.add('visible');
+    sketchTrace.showCelebration({
+      emoji: '🏆',
+      text: 'All 26 letters traced!',
+      sub: "You're an alphabet superstar!",
+      score: ''
+    });
     playSuccessSound();
     launchConfetti();
     speakPraise("Oh my goodness! You traced all 26 letters! You are an alphabet superstar!");
 
-    // Reset after celebration
     setTimeout(() => {
       sketchShuffledLetters = shuffleArray(LETTERS);
       sketchQueueIndex = 0;
@@ -2226,200 +2570,31 @@
     }, 5000);
   }
 
-  // ============================================================
-  // COVERAGE CALCULATION — Compare user strokes to guide letter
-  // ============================================================
-
-  /**
-   * Generate (and cache) the guide letter as pixel data on an
-   * offscreen canvas. Uses the same dimensions & DPR as the
-   * drawing canvas so pixel positions align 1:1.
-   */
-  function getGuideImageData() {
-    const letter = sketchShuffledLetters[sketchQueueIndex];
-    const displayLetter = sketchCase === 'upper' ? letter : letter.toLowerCase();
-    const key = displayLetter;
-
-    // Return cache if valid
-    if (cachedGuideKey === key && cachedGuideData) return cachedGuideData;
-
-    const rect = sketchCanvasWrapper.getBoundingClientRect();
-    const dpr = window.devicePixelRatio || 1;
-    const w = Math.floor(rect.width * dpr);
-    const h = Math.floor(rect.height * dpr);
-
-    const off = document.createElement('canvas');
-    off.width = w;
-    off.height = h;
-    const ctx = off.getContext('2d');
-    ctx.scale(dpr, dpr);
-
-    // Match the visual guide letter's font size and thin weight
-    const computedSize = parseFloat(getComputedStyle(sketchGuideLetter).fontSize) || rect.width * 0.65;
-    const fontFamily = getComputedStyle(sketchGuideLetter).fontFamily || 'system-ui, sans-serif';
-
-    // Use font-weight 500 to match the visible guide letter
-    ctx.font = `500 ${computedSize}px ${fontFamily}`;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-
-    // Fill the letter shape (matches the visible CSS guide)
-    ctx.fillStyle = '#000';
-    ctx.fillText(displayLetter, rect.width / 2, rect.height / 2);
-
-    // Add a moderate stroke around it for a forgiving hit zone
-    ctx.strokeStyle = '#000';
-    ctx.lineWidth = 12;
-    ctx.lineJoin = 'round';
-    ctx.lineCap = 'round';
-    ctx.strokeText(displayLetter, rect.width / 2, rect.height / 2);
-
-    cachedGuideData = ctx.getImageData(0, 0, w, h);
-    cachedGuideKey = key;
-    return cachedGuideData;
-  }
-
-  /**
-   * Calculate how much of the guide letter the user has covered.
-   * Returns a value from 0.0 to 1.0.
-   * Samples every 4th pixel in each direction for performance.
-   */
-  function calculateCoverage() {
-    const guideData = getGuideImageData();
-    const userData = sketchCtx.getImageData(0, 0, sketchCanvas.width, sketchCanvas.height);
-
-    const w = sketchCanvas.width;
-    const h = sketchCanvas.height;
-    const step = 4; // Sample every 4th pixel for performance
-
-    let guidePixels = 0;
-    let coveredPixels = 0;
-
-    for (let y = 0; y < h; y += step) {
-      for (let x = 0; x < w; x += step) {
-        const idx = (y * w + x) * 4;
-
-        // Check if this pixel is part of the guide letter (alpha > 50)
-        const guideAlpha = guideData.data[idx + 3];
-        if (guideAlpha > 50) {
-          guidePixels++;
-          // Check if user drew here (any alpha > 30)
-          const userAlpha = userData.data[idx + 3];
-          if (userAlpha > 30) {
-            coveredPixels++;
-          }
-        }
-      }
-    }
-
-    return guidePixels > 0 ? coveredPixels / guidePixels : 0;
-  }
-
-  /** Update coverage bar and percentage display */
-  function updateCoverageDisplay(coverage) {
-    const pct = Math.round(coverage * 100);
-    coveragePct.textContent = pct + '%';
-
-    coverageFill.style.width = Math.min(pct, 100) + '%';
-
-    // Color classes based on coverage
-    coverageFill.classList.remove('good', 'great');
-    coveragePct.classList.remove('good', 'great');
-
-    if (coverage >= COVERAGE_THRESHOLD) {
-      coverageFill.classList.add('great');
-      coveragePct.classList.add('great');
-    } else if (coverage >= COVERAGE_THRESHOLD * 0.6) {
-      coverageFill.classList.add('good');
-      coveragePct.classList.add('good');
-    }
-  }
-
-  /** Update the feedback message based on coverage */
-  function updateFeedbackMessage(coverage) {
-    const pct = coverage * 100;
-
-    if (pct < 5) {
-      sketchFeedback.textContent = 'Trace over the letter! 🖐️';
-      sketchFeedback.className = 'sketch-feedback';
-    } else if (pct < 15) {
-      sketchFeedback.textContent = 'Good start! Keep tracing! ✏️';
-      sketchFeedback.className = 'sketch-feedback encouraging';
-    } else if (pct < 30) {
-      sketchFeedback.textContent = 'Nice work! Keep going! 🖍️';
-      sketchFeedback.className = 'sketch-feedback encouraging';
-    } else if (pct < 45) {
-      sketchFeedback.textContent = 'Halfway there! You can do it! 💪';
-      sketchFeedback.className = 'sketch-feedback encouraging';
-    } else if (pct < 55) {
-      sketchFeedback.textContent = 'Looking great! A little more! 🌟';
-      sketchFeedback.className = 'sketch-feedback almost';
-    } else if (pct < 65) {
-      sketchFeedback.textContent = 'So close! Almost done! ⭐';
-      sketchFeedback.className = 'sketch-feedback almost';
-    } else {
-      sketchFeedback.textContent = '';
-      sketchFeedback.className = 'sketch-feedback success';
-    }
-  }
-
-  /**
-   * Called after each stroke ends. Calculates coverage and
-   * auto-celebrates if threshold is reached.
-   */
-  function checkCoverageAfterStroke() {
-    if (sketchCelebrated) return;
-    if (sketchPaths.length === 0) return;
-
-    const coverage = calculateCoverage();
-    updateCoverageDisplay(coverage);
-    updateFeedbackMessage(coverage);
-
-    // Auto-celebrate when coverage threshold is reached!
-    if (coverage >= COVERAGE_THRESHOLD) {
-      celebrateSketchSuccess(coverage);
-    }
-  }
-
   /** Celebrate a successful trace! */
   function celebrateSketchSuccess(coverage) {
-    if (sketchCelebrated) return;
-    sketchCelebrated = true;
-
-    const letter = sketchShuffledLetters[sketchQueueIndex];
+    const letter = getCurrentSketchLetter();
     const d = DATA[letter];
-    const displayLetter = sketchCase === 'upper' ? letter : letter.toLowerCase();
+    const displayLetter = getCurrentSketchDisplay();
     const pct = Math.round(coverage * 100);
 
-    // Visual feedback
-    sketchCanvasWrapper.classList.add('verified');
-    sketchGuideLetter.classList.add('verified-glow');
+    sketchTrace.showCelebration({
+      emoji: d.emoji,
+      text: `Great job tracing ${displayLetter}!`,
+      sub: `${letter} is for ${d.animal}!`,
+      score: `Accuracy: ${pct}% ⭐`
+    });
+    sketchTrace.setFeedback('Perfect! ⭐🎉', 'success');
 
-    // Show celebration overlay
-    sketchCelebration.querySelector('.celeb-emoji').textContent = d.emoji;
-    sketchCelebration.querySelector('.celeb-text').textContent = `Great job tracing ${displayLetter}!`;
-    sketchCelebration.querySelector('.celeb-sub').textContent = `${letter} is for ${d.animal}!`;
-    sketchCelebration.querySelector('.celeb-score').textContent = `Accuracy: ${pct}% ⭐`;
-    sketchCelebration.classList.add('visible');
-
-    // Feedback
-    sketchFeedback.textContent = 'Perfect! ⭐🎉';
-    sketchFeedback.className = 'sketch-feedback success';
-
-    // Sound & speech
     playSuccessSound();
     speakPraise(`Wonderful! You traced the letter ${letter}! ${letter} is for ${d.animal}!`);
 
-    // Mark as completed & visited
     sketchCompletedSet.add(letter);
     visitedLetters.add(letter);
     updateProgress();
     document.getElementById('sketchDoneCount').textContent = sketchCompletedSet.size;
 
-    // Mini confetti
     launchMiniConfetti();
 
-    // Auto-advance after celebration
     setTimeout(() => {
       advanceSketchLetter();
     }, 3500);
@@ -2442,74 +2617,13 @@
     }
   }
 
-  // ===== Canvas touch & mouse event handlers =====
-
-  function getCanvasPos(e) {
-    const rect = sketchCanvas.getBoundingClientRect();
-    const touch = e.touches ? e.touches[0] : e;
-    return { x: touch.clientX - rect.left, y: touch.clientY - rect.top };
-  }
-
-  function onDrawStart(e) {
-    if (sketchCelebrated) return; // Don't draw during celebration
-    e.preventDefault();
-    sketchIsDrawing = true;
-    const pos = getCanvasPos(e);
-    sketchCurrentPath = { color: sketchColor, lineWidth: sketchLineWidth, points: [pos] };
-
-    // Draw a dot for single taps
-    sketchCtx.fillStyle = sketchColor;
-    sketchCtx.beginPath();
-    sketchCtx.arc(pos.x, pos.y, sketchLineWidth / 2, 0, Math.PI * 2);
-    sketchCtx.fill();
-  }
-
-  function onDrawMove(e) {
-    if (!sketchIsDrawing || sketchCelebrated) return;
-    e.preventDefault();
-    const pos = getCanvasPos(e);
-    sketchCurrentPath.points.push(pos);
-    const pts = sketchCurrentPath.points;
-    if (pts.length >= 2) {
-      sketchCtx.strokeStyle = sketchCurrentPath.color;
-      sketchCtx.lineWidth = sketchCurrentPath.lineWidth;
-      sketchCtx.lineCap = 'round';
-      sketchCtx.lineJoin = 'round';
-      sketchCtx.beginPath();
-      sketchCtx.moveTo(pts[pts.length - 2].x, pts[pts.length - 2].y);
-      sketchCtx.lineTo(pos.x, pos.y);
-      sketchCtx.stroke();
-    }
-  }
-
-  function onDrawEnd(e) {
-    if (!sketchIsDrawing) return;
-    sketchIsDrawing = false;
-    if (sketchCurrentPath.points && sketchCurrentPath.points.length > 0) {
-      sketchPaths.push(sketchCurrentPath);
-    }
-    sketchCurrentPath = [];
-
-    // Check coverage after each completed stroke
-    checkCoverageAfterStroke();
-  }
-
-  // Touch events
-  sketchCanvas.addEventListener('touchstart', onDrawStart, { passive: false });
-  sketchCanvas.addEventListener('touchmove', onDrawMove, { passive: false });
-  sketchCanvas.addEventListener('touchend', onDrawEnd);
-  sketchCanvas.addEventListener('touchcancel', onDrawEnd);
-
-  // Mouse events (desktop)
-  sketchCanvas.addEventListener('mousedown', onDrawStart);
-  sketchCanvas.addEventListener('mousemove', onDrawMove);
-  sketchCanvas.addEventListener('mouseup', onDrawEnd);
-  sketchCanvas.addEventListener('mouseleave', onDrawEnd);
-
   // Resize handler
   window.addEventListener('resize', () => {
     if (!sketchSection.classList.contains('hidden')) {
       resizeSketchCanvas();
+    }
+    if (!numbersSection.classList.contains('hidden') && numbersMode === 'trace') {
+      numberTrace.resize();
     }
   });
 
@@ -3495,106 +3609,153 @@
   }
 
   // Trace numbers
+  function clearNumbersTraceAdvanceTimer() {
+    if (numbersTraceAdvanceTimer) {
+      clearTimeout(numbersTraceAdvanceTimer);
+      numbersTraceAdvanceTimer = null;
+    }
+  }
+
   function startTraceNumbers() {
+    clearNumbersTraceAdvanceTimer();
+
     const body = getNumbersBody();
     if (!body) return;
 
     body.innerHTML = `
       <div class="numbers-score-bar">
-        <span>✏️ Traced: ${numbersTraceDone.size} / 10</span>
-        <span>🔢 Number ${numbersTraceCurrent}</span>
+        <span>✏️ Traced: <span id="numbersTraceDoneCount">${numbersTraceDone.size}</span> / 10</span>
+        <span>🔢 Number <span id="numbersTraceCurrentLabel">${numbersTraceCurrent}</span></span>
       </div>
       <div class="numbers-prompt">Trace the number ${numbersTraceCurrent}</div>
-      <div class="numbers-hint">Use your finger to draw on the big number.</div>
+      <div class="numbers-hint">Use your finger to trace the big number.</div>
       <div class="numbers-trace-wrap">
         <div class="numbers-trace-canvas-wrap" id="numbersTraceWrap">
           <div class="numbers-trace-guide" id="numbersTraceGuide">${numbersTraceCurrent}</div>
           <canvas class="numbers-trace-canvas" id="numbersTraceCanvas"></canvas>
+          <div class="sketch-celebration" id="numbersTraceCelebration">
+            <div class="celeb-emoji">🔢</div>
+            <div class="celeb-text">Great job!</div>
+            <div class="celeb-sub">You traced the number!</div>
+            <div class="celeb-score"></div>
+          </div>
         </div>
-        <div class="numbers-reveal" id="numbersTraceReveal">Start tracing! ✏️</div>
+        <div class="sketch-coverage-section numbers-trace-coverage">
+          <div class="sketch-coverage-label">
+            <span class="sketch-coverage-label-text">Tracing accuracy</span>
+            <span class="sketch-coverage-pct" id="numbersCoveragePct">0%</span>
+          </div>
+          <div class="sketch-coverage-track">
+            <div class="sketch-coverage-fill" id="numbersCoverageFill"></div>
+            <div class="sketch-coverage-threshold" id="numbersCoverageThreshold"></div>
+          </div>
+        </div>
+        <div class="sketch-feedback numbers-trace-feedback" id="numbersTraceFeedback">Start tracing! ✏️</div>
         <div class="numbers-trace-toolbar">
           <button class="sketch-action-btn" onclick="clearNumberTrace()">🗑️ Clear</button>
-          <button class="sketch-action-btn" onclick="markNumberTraced()">🌟 I Did It</button>
+          <button class="sketch-action-btn" onclick="undoNumberTrace()">↩️ Undo</button>
           <button class="sketch-action-btn" onclick="prevNumberTrace()">⬅️ Back</button>
           <button class="sketch-action-btn" onclick="nextNumberTrace()">➡️ Next</button>
         </div>
       </div>
     `;
 
-    setupNumberTraceCanvas();
+    numberTrace.resize();
+    numberTrace.resetForTarget();
     setTimeout(() => speakText(`Trace the number ${numbersTraceCurrent}`), 250);
   }
 
-  function setupNumberTraceCanvas() {
-    numbersTraceCanvas = document.getElementById('numbersTraceCanvas');
-    if (!numbersTraceCanvas) return;
-    const wrap = document.getElementById('numbersTraceWrap');
-    const rect = wrap.getBoundingClientRect();
-    numbersTraceCanvas.width = rect.width * devicePixelRatio;
-    numbersTraceCanvas.height = rect.height * devicePixelRatio;
-    numbersTraceCanvas.style.width = rect.width + 'px';
-    numbersTraceCanvas.style.height = rect.height + 'px';
-    numbersTraceCtx = numbersTraceCanvas.getContext('2d');
-    numbersTraceCtx.scale(devicePixelRatio, devicePixelRatio);
-    numbersTraceCtx.lineCap = 'round';
-    numbersTraceCtx.lineJoin = 'round';
-    numbersTraceCtx.strokeStyle = '#FF6B6B';
-    numbersTraceCtx.lineWidth = 16;
-
-    const getPos = e => {
-      const r = numbersTraceCanvas.getBoundingClientRect();
-      const p = e.touches ? e.touches[0] : e;
-      return { x: p.clientX - r.left, y: p.clientY - r.top };
-    };
-
-    const start = e => {
-      e.preventDefault();
-      numbersTraceDrawing = true;
-      const p = getPos(e);
-      numbersTraceLastX = p.x; numbersTraceLastY = p.y;
-    };
-    const move = e => {
-      if (!numbersTraceDrawing) return;
-      e.preventDefault();
-      const p = getPos(e);
-      numbersTraceCtx.beginPath();
-      numbersTraceCtx.moveTo(numbersTraceLastX, numbersTraceLastY);
-      numbersTraceCtx.lineTo(p.x, p.y);
-      numbersTraceCtx.stroke();
-      numbersTraceLastX = p.x; numbersTraceLastY = p.y;
-    };
-    const end = () => { numbersTraceDrawing = false; };
-
-    numbersTraceCanvas.addEventListener('mousedown', start);
-    numbersTraceCanvas.addEventListener('mousemove', move);
-    window.addEventListener('mouseup', end, { once: true });
-    numbersTraceCanvas.addEventListener('touchstart', start, { passive: false });
-    numbersTraceCanvas.addEventListener('touchmove', move, { passive: false });
-    numbersTraceCanvas.addEventListener('touchend', end);
-  }
-
   function clearNumberTrace() {
-    if (!numbersTraceCtx || !numbersTraceCanvas) return;
-    numbersTraceCtx.clearRect(0, 0, numbersTraceCanvas.width, numbersTraceCanvas.height);
-    const reveal = document.getElementById('numbersTraceReveal');
-    if (reveal) reveal.textContent = 'Try again! ✏️';
+    clearNumbersTraceAdvanceTimer();
+    numberTrace.clear('Start tracing! ✏️');
     playTapSound();
   }
 
-  function markNumberTraced() {
-    numbersTraceDone.add(numbersTraceCurrent);
-    const reveal = document.getElementById('numbersTraceReveal');
-    if (reveal) reveal.textContent = `Great job tracing ${numbersTraceCurrent}!`;
+  function undoNumberTrace() {
+    clearNumbersTraceAdvanceTimer();
+    if (numberTrace.undo()) playTapSound();
+  }
+
+  function updateNumbersTraceProgress() {
+    const done = document.getElementById('numbersTraceDoneCount');
+    const current = document.getElementById('numbersTraceCurrentLabel');
+    if (done) done.textContent = numbersTraceDone.size;
+    if (current) current.textContent = numbersTraceCurrent;
+  }
+
+  function getNextUntracedNumber(fromNumber) {
+    for (let n = fromNumber + 1; n <= 10; n++) {
+      if (!numbersTraceDone.has(n)) return n;
+    }
+    for (let n = 1; n <= 10; n++) {
+      if (!numbersTraceDone.has(n)) return n;
+    }
+    return null;
+  }
+
+  function celebrateNumberTraceSuccess(coverage) {
+    const tracedNumber = numbersTraceCurrent;
+    const pct = Math.round(coverage * 100);
+    numbersTraceDone.add(tracedNumber);
+    updateNumbersTraceProgress();
+
+    numberTrace.showCelebration({
+      emoji: '🔢',
+      text: `Great job tracing ${tracedNumber}!`,
+      sub: `${tracedNumber} is ${numberWord(tracedNumber)}!`,
+      score: `Accuracy: ${pct}% ⭐`
+    });
+    numberTrace.setFeedback('Perfect! ⭐🎉', 'success');
+
     playSuccessSound();
-    speakPraise(`Great job tracing ${numbersTraceCurrent}!`);
+    speakPraise(`Great job tracing the number ${tracedNumber}!`);
+    launchMiniConfetti();
+
+    numbersTraceAdvanceTimer = setTimeout(() => {
+      numbersTraceAdvanceTimer = null;
+      if (numbersTraceDone.size >= 10) {
+        showNumberTraceComplete();
+        return;
+      }
+
+      const next = getNextUntracedNumber(tracedNumber);
+      if (next) {
+        numbersTraceCurrent = next;
+        startTraceNumbers();
+      }
+    }, 3000);
+  }
+
+  function showNumberTraceComplete() {
+    const body = getNumbersBody();
+    if (!body) return;
+    body.innerHTML = `
+      <div class="quiz-complete">
+        <div class="trophy">🏆</div>
+        <h2>All 10 numbers traced!</h2>
+        <p>You traced every number from 1 to 10.</p>
+        <button onclick="restartNumberTrace()">🔄 Trace Again</button>
+      </div>
+    `;
+    launchConfetti();
+    speakPraise('You traced all ten numbers!');
+  }
+
+  function restartNumberTrace() {
+    clearNumbersTraceAdvanceTimer();
+    numbersTraceCurrent = 1;
+    numbersTraceDone = new Set();
+    startTraceNumbers();
   }
 
   function prevNumberTrace() {
+    clearNumbersTraceAdvanceTimer();
     numbersTraceCurrent = Math.max(1, numbersTraceCurrent - 1);
     startTraceNumbers();
   }
 
   function nextNumberTrace() {
+    clearNumbersTraceAdvanceTimer();
     if (numbersTraceCurrent < 10) numbersTraceCurrent++;
     startTraceNumbers();
   }
