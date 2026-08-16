@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Alphabet Animal Parade</title>
   <style>
     /* ===== RESET & BASE ===== */
@@ -16,6 +16,22 @@
       user-select: none;
       background: #f0f0f5;
       overflow-x: hidden;
+    }
+
+    /* Large, forgiving controls are easier for small hands to find. */
+    button, .tab-btn, .letter-tile { min-height: 48px; }
+    button:focus-visible, .letter-tile:focus-visible {
+      outline: 4px solid #2D9CDB;
+      outline-offset: 3px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
     }
 
     /* ===== PAGE TRANSITIONS ===== */
@@ -112,8 +128,13 @@
     }
     .tab-bar::-webkit-scrollbar { display: none; }
 
+    .advanced-tabs {
+      display: flex; gap: 4px; flex-shrink: 0;
+    }
+    .advanced-tabs.hidden { display: none; }
+
     .tab-btn {
-      padding: 6px 14px; border: none; background: transparent;
+      padding: 10px 14px; border: none; background: transparent;
       border-radius: 10px; font-size: clamp(0.65rem, 1.8vw, 0.85rem);
       font-weight: 700; color: #999; cursor: pointer; transition: all 0.25s ease;
       flex-shrink: 0; white-space: nowrap;
@@ -134,6 +155,7 @@
     .letter-tile {
       aspect-ratio: 1; border-radius: clamp(10px, 2.5vw, 18px);
       display: flex; flex-direction: column; align-items: center; justify-content: center;
+      border: none; font: inherit;
       cursor: pointer; transition: transform 0.2s ease, box-shadow 0.2s ease;
       box-shadow: 0 2px 8px rgba(0,0,0,0.06); position: relative; overflow: hidden;
       animation: tile-pop 0.4s cubic-bezier(0.34,1.56,0.64,1) backwards;
@@ -144,12 +166,12 @@
 
     .letter-tile .tile-letter {
       font-size: clamp(1.5rem, 5vw, 2.5rem); font-weight: 900;
-      color: rgba(0,0,0,0.18); line-height: 1;
+      color: rgba(0,0,0,0.62); line-height: 1;
     }
 
     .letter-tile .tile-animal {
-      font-size: clamp(0.4rem, 1.2vw, 0.6rem); font-weight: 600;
-      color: rgba(0,0,0,0.2); text-transform: uppercase;
+      font-size: clamp(0.55rem, 1.5vw, 0.75rem); font-weight: 700;
+      color: rgba(0,0,0,0.52); text-transform: uppercase;
       letter-spacing: 0.04em; margin-top: 1px;
     }
 
@@ -1280,13 +1302,16 @@
   <div class="tab-bar">
     <button class="tab-btn active" id="tabLetters" onclick="switchTab('letters')">🔤 Letters</button>
     <button class="tab-btn" id="tabSketch" onclick="switchTab('sketch')">✏️ Sketch</button>
-    <button class="tab-btn" id="tabQuiz" onclick="switchTab('quiz')">🎮 Quiz</button>
-    <button class="tab-btn" id="tabMatch" onclick="switchTab('match')">🧩 Match</button>
-    <button class="tab-btn" id="tabPhonics" onclick="switchTab('phonics')">🔊 Phonics</button>
-    <button class="tab-btn" id="tabFeed" onclick="switchTab('feed')">🍽️ Feed</button>
-    <button class="tab-btn" id="tabPop" onclick="switchTab('pop')">🫧 Pop</button>
-    <button class="tab-btn" id="tabSpell" onclick="switchTab('spell')">🔠 Spell</button>
-    <button class="tab-btn" id="tabNumbers" onclick="switchTab('numbers')">🔢 Numbers</button>
+    <button class="tab-btn" id="tabNumbers" onclick="window.location.href='numbers.html'">🔢 Numbers 1–50</button>
+    <button class="tab-btn" id="tabMore" onclick="toggleAdvancedTabs()" aria-expanded="false">🎮 More games</button>
+    <div class="advanced-tabs hidden" id="advancedTabs">
+      <button class="tab-btn" id="tabQuiz" onclick="switchTab('quiz')">Quiz</button>
+      <button class="tab-btn" id="tabMatch" onclick="switchTab('match')">Match</button>
+      <button class="tab-btn" id="tabPhonics" onclick="switchTab('phonics')">Phonics</button>
+      <button class="tab-btn" id="tabFeed" onclick="switchTab('feed')">Feed</button>
+      <button class="tab-btn" id="tabPop" onclick="switchTab('pop')">Pop</button>
+      <button class="tab-btn" id="tabSpell" onclick="switchTab('spell')">Spell</button>
+    </div>
   </div>
 
   <div class="mode-strip" id="modeStrip">
@@ -1547,6 +1572,23 @@
   let visitedLetters = new Set();
   let completionShown = false;
 
+  const LETTER_PROGRESS_KEY = 'alphabet-animal-letter-progress';
+  function loadVisitedLetters(mode) {
+    try {
+      const saved = JSON.parse(localStorage.getItem(LETTER_PROGRESS_KEY) || '{}');
+      return new Set(Array.isArray(saved[mode]) ? saved[mode] : []);
+    } catch (e) {
+      return new Set();
+    }
+  }
+  function saveVisitedLetters() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(LETTER_PROGRESS_KEY) || '{}');
+      saved[currentMode] = [...visitedLetters];
+      localStorage.setItem(LETTER_PROGRESS_KEY, JSON.stringify(saved));
+    } catch (e) { /* Storage can be unavailable in private browsing. */ }
+  }
+
   // Quiz state
   let quizLetters = [];
   let quizIndex = 0;
@@ -1597,7 +1639,7 @@
   let sketchLineWidth = 30;
 
   // Coverage verification
-  const COVERAGE_THRESHOLD = 0.55;       // 55% coverage required - trace most of the guide!
+  const COVERAGE_THRESHOLD = 0.4;        // A forgiving practice threshold for small hands.
 
   // ============================================================
   // DOM REFERENCES
@@ -1864,6 +1906,7 @@
   function updateProgress() {
     const count = visitedLetters.size;
     const pct = Math.round((count / 26) * 100);
+    saveVisitedLetters();
     progressFill.style.width = pct + '%';
     progressText.textContent = `⭐ ${count} / 26 Letters Explored`;
     progressPercent.textContent = pct + '%';
@@ -1889,12 +1932,27 @@
 
   let currentTab = 'letters';
 
+  function toggleAdvancedTabs() {
+    const advanced = document.getElementById('advancedTabs');
+    const button = document.getElementById('tabMore');
+    const isHidden = advanced.classList.toggle('hidden');
+    button.setAttribute('aria-expanded', String(!isHidden));
+    playTapSound();
+  }
+
   function switchTab(tab, force = false) {
     const activeBtn = document.querySelector('.tab-btn.active');
     if (!force && currentTab === tab && activeBtn && activeBtn.id.toLowerCase().includes(tab)) {
       return; // prevent restarting active games by tapping the same tab
     }
     currentTab = tab;
+    const advancedTabs = ['quiz', 'match', 'phonics', 'feed', 'pop', 'spell'];
+    const isAdvanced = advancedTabs.includes(tab);
+    const advanced = document.getElementById('advancedTabs');
+    const moreButton = document.getElementById('tabMore');
+    advanced.classList.toggle('hidden', !isAdvanced && !advanced.classList.contains('hidden'));
+    if (isAdvanced) advanced.classList.remove('hidden');
+    moreButton.setAttribute('aria-expanded', String(isAdvanced || !advanced.classList.contains('hidden')));
 
     document.getElementById('tabLetters').classList.toggle('active', tab === 'letters');
     document.getElementById('tabSketch').classList.toggle('active', tab === 'sketch');
@@ -1905,6 +1963,7 @@
     document.getElementById('tabPop').classList.toggle('active', tab === 'pop');
     document.getElementById('tabSpell').classList.toggle('active', tab === 'spell');
     document.getElementById('tabNumbers').classList.toggle('active', tab === 'numbers');
+    moreButton.classList.toggle('active', isAdvanced);
 
     letterGrid.style.display = tab === 'letters' ? '' : 'none';
     document.getElementById('modeStrip').style.display = tab === 'letters' ? '' : 'none';
@@ -1955,8 +2014,9 @@
     if (mode === 'household') document.getElementById('btnModeHousehold').classList.add('active');
     if (mode === 'food') document.getElementById('btnModeFood').classList.add('active');
 
-    // Reset progress
-    visitedLetters.clear();
+    // Keep each learning world independent and restore it after a reload.
+    visitedLetters = loadVisitedLetters(mode);
+    completionShown = false;
     sketchCompletedSet.clear();
     quizScore = 0;
     quizStreak = 0;
@@ -1991,8 +2051,10 @@
     letterGrid.innerHTML = '';
     LETTERS.forEach((letter, i) => {
       const d = DATA[letter];
-      const tile = document.createElement('div');
+      const tile = document.createElement('button');
       tile.classList.add('letter-tile');
+      tile.type = 'button';
+      tile.setAttribute('aria-label', `${letter}, ${d.animal}`);
       if (visitedLetters.has(letter)) tile.classList.add('visited');
       tile.style.backgroundColor = d.color;
       tile.style.animationDelay = (i * 0.02) + 's';
@@ -2960,7 +3022,7 @@
   let matchLock = false;
   let matchesFound = 0;
   let matchMode = 'emoji';
-  const MATCH_PAIR_COUNT = 8;
+  const MATCH_PAIR_COUNT = 3;
 
   function setMatchMode(mode) {
     matchMode = mode;
@@ -3458,7 +3520,7 @@
     const body = getNumbersBody();
     if (!body) return;
 
-    if (numbersCountRound > 8) {
+    if (numbersCountRound > 5) {
       body.innerHTML = `
         <div class="quiz-complete">
           <div class="trophy">🔢</div>
@@ -3480,7 +3542,7 @@
     body.innerHTML = `
       <div class="numbers-score-bar">
         <span>⭐ Score: ${numbersCountScore}</span>
-        <span>📝 ${numbersCountRound} / 8</span>
+        <span>📝 ${numbersCountRound} / 5</span>
       </div>
       <div class="numbers-prompt">How many ${d.animal.toLowerCase()}s do you see?</div>
       <div class="numbers-hint">Count them, then tap the number.</div>
@@ -3491,27 +3553,31 @@
       <div class="numbers-reveal" id="numbersCountReveal"></div>
     `;
 
+    let answered = false;
     body.querySelectorAll('.numbers-choice').forEach(btn => {
       btn.addEventListener('click', () => {
+        if (answered) return;
         const chosen = Number(btn.dataset.number);
         const reveal = document.getElementById('numbersCountReveal');
         if (chosen === answer) {
+          answered = true;
           numbersCountScore++;
           btn.classList.add('correct');
           playSuccessSound();
           reveal.textContent = `${answer}! Great counting!`;
           speakPraise(`${answer}! Great counting!`);
+          body.querySelectorAll('.numbers-choice').forEach(b => b.disabled = true);
+          setTimeout(() => {
+            numbersCountRound++;
+            renderCountAnimalsRound();
+          }, 1400);
         } else {
           btn.classList.add('wrong');
           playWrongSound();
-          reveal.textContent = `Let's count again. There are ${answer}.`;
-          speakCorrection(`There are ${answer}.`);
+          reveal.textContent = 'Almost! Count again and try one more time. 💛';
+          speakCorrection('Let’s count together. Try one more time.');
+          setTimeout(() => btn.classList.remove('wrong'), 450);
         }
-        body.querySelectorAll('.numbers-choice').forEach(b => b.disabled = true);
-        setTimeout(() => {
-          numbersCountRound++;
-          renderCountAnimalsRound();
-        }, 1400);
       });
     });
 
@@ -3528,7 +3594,7 @@
     numbersMatchLock = false;
     numbersMatchFound = 0;
 
-    const nums = shuffleArray([1,2,3,4,5,6]).slice(0, 6);
+    const nums = shuffleArray([1,2,3,4,5,6]).slice(0, 3);
     nums.forEach(n => {
       numbersMatchCards.push({ type: 'digit', value: n, display: String(n), say: String(n) });
       numbersMatchCards.push({ type: 'qty', value: n, display: '⭐'.repeat(n), say: numberWord(n) });
@@ -3537,7 +3603,7 @@
 
     body.innerHTML = `
       <div class="numbers-score-bar">
-        <span>🧩 Matches: <span id="numbersMatchScore">0</span> / 6</span>
+        <span>🧩 Matches: <span id="numbersMatchScore">0</span> / 3</span>
       </div>
       <div class="numbers-prompt">Match the number to the right amount!</div>
       <div class="numbers-hint">Find number friends that belong together.</div>
@@ -3582,7 +3648,7 @@
         numbersMatchFirst = null;
         numbersMatchSecond = null;
         numbersMatchLock = false;
-        if (numbersMatchFound === 6) {
+        if (numbersMatchFound === 3) {
           const body = getNumbersBody();
           if (body) body.innerHTML = `
             <div class="quiz-complete">
@@ -3870,7 +3936,7 @@
   // ============================================================
 
   function startQuiz() {
-    quizLetters = [...LETTERS].sort(() => Math.random() - 0.5);
+    quizLetters = [...LETTERS].sort(() => Math.random() - 0.5).slice(0, 5);
     quizIndex = 0; quizScore = 0; quizStreak = 0;
     showQuizQuestion();
   }
@@ -3893,7 +3959,7 @@
       <div class="quiz-score-bar">
         <span>⭐ Score: ${quizScore}</span>
         <span>🔥 Streak: ${quizStreak}</span>
-        <span>📝 ${quizIndex + 1} / 26</span>
+        <span>📝 ${quizIndex + 1} / ${quizLetters.length}</span>
       </div>
       <div class="quiz-prompt">
         <div class="quiz-emoji">${d.emoji}</div>
@@ -3960,7 +4026,7 @@
   }
 
   function showQuizComplete() {
-    const pct = Math.round((quizScore / 26) * 100);
+    const pct = Math.round((quizScore / quizLetters.length) * 100);
     let message = '', trophy = '🏆';
     if (pct === 100)     { message = "PERFECT SCORE! You're an alphabet genius!"; trophy = '👑'; }
     else if (pct >= 80)  { message = "Amazing job! You really know your letters!"; }
@@ -3971,7 +4037,7 @@
       <div class="quiz-complete">
         <div class="trophy">${trophy}</div>
         <h2>Quiz Complete!</h2>
-        <p>${message}<br>You got <strong>${quizScore} / 26</strong> correct!</p>
+        <p>${message}<br>You got <strong>${quizScore} / ${quizLetters.length}</strong> correct!</p>
         <button onclick="startQuiz()">🔄 Play Again</button>
       </div>
     `;

@@ -22,11 +22,11 @@ The app includes multiple touch-friendly learning modes:
 * **Feed:** Feed the displayed animal, item, or food the correct letter.
 * **Pop:** Pop bubbles that match the target letter before they float away.
 * **Spell:** Build short words from shuffled letter buttons.
-* **Numbers:** Practice counting groups, matching numbers to quantities, and tracing numbers 1-10 with the same coverage-based feedback used for letter tracing.
+* **Numbers:** Open the dedicated [Numbers 1–50 page](numbers.html) to explore number ranges, count grouped quantities, match numeral/quantity pairs, and practice tracing.
 
 ## ✨ Features
 
-* Progress tracking for explored letters and completed tracing.
+* Progress tracking for explored letters, explored numbers, and completed tracing.
 * Speech prompts, sound effects, and celebration feedback.
 * Responsive layout designed for phones, tablets, and desktop browsers.
 * Touch-first canvas interactions for finger tracing.
@@ -41,7 +41,7 @@ This repository currently ships as a portable static app:
 * **Logic:** Vanilla JavaScript
 * **Deployment:** GitHub Pages
 
-All app code lives in `index.html`.
+The alphabet experience lives in `index.html`; the dedicated number experience is in `numbers.html`, with its styles in `numbers.css` and behavior in `numbers.js`.
 
 ## 💻 Local Development
 
@@ -59,6 +59,8 @@ Then visit:
 http://localhost:8000
 ```
 
+The number page is available at `http://localhost:8000/numbers.html`.
+
 ## 🏗️ Deployment
 
-The app is ready for static hosting. Push changes to the configured GitHub Pages branch and GitHub Pages will serve the updated `index.html`.
+The app is ready for static hosting. Push changes to the configured GitHub Pages branch and GitHub Pages will serve `index.html` and `numbers.html`.

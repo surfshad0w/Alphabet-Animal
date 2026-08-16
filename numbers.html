@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Numbers 1–50 | Alphabet Animal Parade</title>
+  <link rel="stylesheet" href="numbers.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <a class="back-link" href="index.html">← ABC</a>
+      <div>
+        <h1 class="page-title">🔢 Number Parade</h1>
+        <p class="subtitle">Let’s explore numbers 1 to 50!</p>
+      </div>
+      <button class="sound-button" id="soundButton" aria-pressed="true">🔊 Sound on</button>
+    </header>
+
+    <main class="panel">
+      <div class="progress-wrap" aria-live="polite">
+        <div class="progress-label"><span>⭐ Number friends</span><span id="numberProgressText">0 of 50 numbers explored</span><button class="reset-button" id="resetProgress" type="button">Reset</button></div>
+        <div class="progress-track" aria-hidden="true"><div class="progress-fill" id="numberProgressFill"></div></div>
+      </div>
+
+      <nav class="mode-nav" aria-label="Number activities" role="tablist">
+        <button class="mode-button active" data-mode="explore" role="tab" aria-selected="true">👀 Explore</button>
+        <button class="mode-button" data-mode="play" role="tab" aria-selected="false">🎮 Play</button>
+        <button class="mode-button" data-mode="trace" role="tab" aria-selected="false">✏️ Trace</button>
+      </nav>
+
+      <div class="range-picker" aria-label="Choose a number range">
+        <button class="range-button active" data-range-start="1" aria-pressed="true">1–10</button>
+        <button class="range-button" data-range-start="11" aria-pressed="false">11–20</button>
+        <button class="range-button" data-range-start="21" aria-pressed="false">21–30</button>
+        <button class="range-button" data-range-start="31" aria-pressed="false">31–40</button>
+        <button class="range-button" data-range-start="41" aria-pressed="false">41–50</button>
+      </div>
+
+      <div class="play-picker" hidden aria-label="Choose a play activity">
+        <button class="play-button active" data-play-mode="count" aria-pressed="true">🐾 Count</button>
+        <button class="play-button" data-play-mode="match" aria-pressed="false">🧩 Match</button>
+      </div>
+
+      <section id="numbersApp" aria-live="polite"></section>
+    </main>
+    <div id="liveRegion" class="empty-state" aria-live="polite"></div>
+  </div>
+  <script src="numbers.js"></script>
+</body>
+</html>
