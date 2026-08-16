@@ -133,7 +133,7 @@
     numbersHome.classList.add('hidden');
     numberDetail.classList.remove('hidden');
     numberDetail.scrollTop = 0;
-    speak(`${number}. ${numberWord(number)}.`);
+    speak(numberWord(number));
 
     if (isNew && visitedNumbers.size === TOTAL_NUMBERS && !completionShown) {
       completionShown = true;
@@ -173,7 +173,7 @@
   detailNext.addEventListener('click', () => {
     if (currentNumber < TOTAL_NUMBERS) openNumber(currentNumber + 1);
   });
-  hearNumber.addEventListener('click', () => speak(`${currentNumber}. ${numberWord(currentNumber)}.`));
+  hearNumber.addEventListener('click', () => speak(numberWord(currentNumber)));
 
   soundButton.addEventListener('click', () => {
     soundEnabled = !soundEnabled;
