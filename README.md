@@ -22,7 +22,7 @@ The app includes multiple touch-friendly learning modes:
 * **Feed:** Feed the displayed animal, item, or food the correct letter.
 * **Pop:** Pop bubbles that match the target letter before they float away.
 * **Spell:** Build short words from shuffled letter buttons.
-* **Numbers:** Open the dedicated [Numbers 1–50 page](numbers.html) to explore number ranges, count grouped quantities, match numeral/quantity pairs, and practice tracing.
+* **Numbers:** Open the dedicated [Numbers 1–50 page](numbers.html) to browse all 50 number tiles, hear each number spoken, and see its quantity in groups of ten.
 
 ## ✨ Features
 

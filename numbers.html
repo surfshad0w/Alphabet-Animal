@@ -3,49 +3,66 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Numbers 1–50 | Alphabet Animal Parade</title>
+  <title>Number Parade 1–50</title>
   <link rel="stylesheet" href="numbers.css">
 </head>
 <body>
-  <div class="app-shell">
-    <header class="topbar">
-      <a class="back-link" href="index.html">← ABC</a>
-      <div>
-        <h1 class="page-title">🔢 Number Parade</h1>
-        <p class="subtitle">Let’s explore numbers 1 to 50!</p>
+  <div class="bubbles" id="bubbles" aria-hidden="true"></div>
+
+  <main class="numbers-home" id="numbersHome">
+    <header class="home-header">
+      <a class="home-button" href="index.html">← ABC</a>
+      <div class="title-group">
+        <h1>🔢 Number Parade</h1>
+        <p>Tap a number to explore!</p>
       </div>
-      <button class="sound-button" id="soundButton" aria-pressed="true">🔊 Sound on</button>
+      <button class="home-button sound-button" id="soundButton" type="button" aria-pressed="true">🔊 Sound</button>
     </header>
 
-    <main class="panel">
-      <div class="progress-wrap" aria-live="polite">
-        <div class="progress-label"><span>⭐ Number friends</span><span id="numberProgressText">0 of 50 numbers explored</span><button class="reset-button" id="resetProgress" type="button">Reset</button></div>
-        <div class="progress-track" aria-hidden="true"><div class="progress-fill" id="numberProgressFill"></div></div>
+    <section class="progress-section" aria-live="polite">
+      <div class="progress-label">
+        <span id="progressText">⭐ 0 / 50 Numbers Explored</span>
+        <button class="reset-button" id="resetProgress" type="button">Reset</button>
       </div>
-
-      <nav class="mode-nav" aria-label="Number activities" role="tablist">
-        <button class="mode-button active" data-mode="explore" role="tab" aria-selected="true">👀 Explore</button>
-        <button class="mode-button" data-mode="play" role="tab" aria-selected="false">🎮 Play</button>
-        <button class="mode-button" data-mode="trace" role="tab" aria-selected="false">✏️ Trace</button>
-      </nav>
-
-      <div class="range-picker" aria-label="Choose a number range">
-        <button class="range-button active" data-range-start="1" aria-pressed="true">1–10</button>
-        <button class="range-button" data-range-start="11" aria-pressed="false">11–20</button>
-        <button class="range-button" data-range-start="21" aria-pressed="false">21–30</button>
-        <button class="range-button" data-range-start="31" aria-pressed="false">31–40</button>
-        <button class="range-button" data-range-start="41" aria-pressed="false">41–50</button>
+      <div class="progress-track" aria-hidden="true">
+        <div class="progress-fill" id="progressFill"></div>
       </div>
+    </section>
 
-      <div class="play-picker" hidden aria-label="Choose a play activity">
-        <button class="play-button active" data-play-mode="count" aria-pressed="true">🐾 Count</button>
-        <button class="play-button" data-play-mode="match" aria-pressed="false">🧩 Match</button>
+    <section class="number-grid" id="numberGrid" aria-label="Numbers 1 through 50"></section>
+  </main>
+
+  <section class="number-detail hidden" id="numberDetail" aria-live="polite">
+    <div class="detail-topbar">
+      <button class="detail-button" id="detailBack" type="button">← Back</button>
+      <div class="detail-navigation">
+        <button class="detail-button nav-button" id="detailPrevious" type="button" aria-label="Previous number">◀</button>
+        <button class="detail-button nav-button" id="detailNext" type="button" aria-label="Next number">▶</button>
       </div>
+    </div>
 
-      <section id="numbersApp" aria-live="polite"></section>
-    </main>
-    <div id="liveRegion" class="empty-state" aria-live="polite"></div>
+    <div class="detail-content">
+      <div class="detail-number" id="detailNumber">1</div>
+      <div class="detail-word" id="detailWord">one</div>
+      <div class="quantity-card">
+        <div class="quantity-groups" id="quantityGroups"></div>
+        <div class="quantity-caption" id="quantityCaption"></div>
+      </div>
+      <button class="hear-button" id="hearNumber" type="button">🔊 Hear Again</button>
+      <p class="back-hint">Use the arrows to visit the next number.</p>
+    </div>
+  </section>
+
+  <div class="completion-overlay hidden" id="completionOverlay">
+    <div class="completion-card">
+      <div class="trophy">🏆</div>
+      <h2>Number Superstar!</h2>
+      <p>You explored all 50 numbers!</p>
+      <button id="closeCompletion" type="button">Keep Exploring</button>
+    </div>
   </div>
+
+  <div class="sr-only" id="liveRegion" aria-live="polite"></div>
   <script src="numbers.js"></script>
 </body>
 </html>
