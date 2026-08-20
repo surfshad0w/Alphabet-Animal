@@ -47,6 +47,8 @@
       position: relative;
     }
 
+    .home-page.sketch-mode > .progress-section { display: none; }
+
     .home-header { text-align: center; margin-bottom: 0.5rem; position: relative; z-index: 2; }
 
     .home-title {
@@ -210,7 +212,7 @@
 
     /* ===== SKETCH SECTION ===== */
     .sketch-section {
-      width: 100%; max-width: 500px;
+      width: 100%; max-width: 540px;
       display: flex; flex-direction: column; align-items: center;
       position: relative; z-index: 2;
     }
@@ -225,6 +227,13 @@
 
     .sketch-prompt .sketch-letter-highlight {
       font-size: clamp(1.2rem, 3.5vw, 1.6rem); font-weight: 900; color: #FF6B6B;
+    }
+
+    .sketch-helper {
+      margin-top: 0.25rem;
+      color: #999;
+      font-size: clamp(0.7rem, 2vw, 0.88rem);
+      font-weight: 700;
     }
 
     /* Sketch progress counter */
@@ -248,7 +257,7 @@
     }
 
     .sketch-case-btn {
-      padding: 5px 16px; border: none; background: transparent;
+      min-height: 48px; padding: 8px 22px; border: none; background: transparent;
       border-radius: 8px; font-size: clamp(0.7rem, 1.8vw, 0.85rem);
       font-weight: 700; color: #aaa; cursor: pointer; transition: all 0.2s;
     }
@@ -261,7 +270,7 @@
     /* Canvas wrapper */
     .sketch-canvas-wrapper {
       position: relative;
-      width: min(85vw, 400px); height: min(85vw, 400px);
+      width: min(88vw, 430px); height: min(88vw, 430px);
       border-radius: 24px; overflow: hidden;
       box-shadow: 0 4px 20px rgba(0,0,0,0.08);
       background: white; margin-bottom: 0.5rem;
@@ -289,13 +298,13 @@
     .sketch-guide-letter {
       position: absolute; inset: 0;
       display: flex; align-items: center; justify-content: center;
-      font-weight: 500; color: rgba(0,0,0,0.08);
-      font-size: min(60vw, 280px); line-height: 1;
+      font-weight: 650; color: rgba(0,0,0,0.13);
+      font-size: min(64vw, 310px); line-height: 1;
       pointer-events: none; z-index: 1;
       transition: all 0.3s ease;
     }
 
-    .sketch-guide-letter.lowercase { font-size: min(55vw, 260px); font-weight: 500; }
+    .sketch-guide-letter.lowercase { font-size: min(58vw, 280px); font-weight: 650; }
 
     .sketch-guide-letter.verified-glow {
       color: rgba(78, 205, 196, 0.15);
@@ -308,7 +317,7 @@
 
     /* ===== COVERAGE METER ===== */
     .sketch-coverage-section {
-      width: min(85vw, 400px); margin-bottom: 0.5rem;
+      width: min(88vw, 430px); margin-bottom: 0.5rem;
     }
 
     .sketch-coverage-label {
@@ -322,8 +331,10 @@
     }
 
     .sketch-coverage-pct {
-      font-size: clamp(0.7rem, 1.8vw, 0.85rem);
-      font-weight: 800; color: #ccc;
+      min-width: 6.2em;
+      font-size: clamp(0.85rem, 2.3vw, 1rem);
+      font-weight: 900; letter-spacing: 0.08em; color: #ccc;
+      text-align: right;
       transition: color 0.3s ease;
     }
 
@@ -348,10 +359,7 @@
 
     /* Threshold marker */
     .sketch-coverage-threshold {
-      position: absolute; top: -2px; bottom: -2px;
-      width: 3px; background: rgba(0,0,0,0.15);
-      border-radius: 2px; z-index: 1;
-      /* positioned via JS */
+      display: none;
     }
 
     .sketch-coverage-threshold::after {
@@ -381,8 +389,8 @@
     }
 
     .sketch-color-btn {
-      width: 32px; height: 32px;
-      border: 3px solid transparent; border-radius: 50%;
+      width: 50px; height: 50px; min-height: 50px;
+      border: 4px solid transparent; border-radius: 50%;
       cursor: pointer; transition: transform 0.2s, border-color 0.2s;
       box-shadow: 0 2px 6px rgba(0,0,0,0.1);
     }
@@ -397,19 +405,34 @@
     }
 
     .sketch-action-btn {
-      border: none; background: rgba(0,0,0,0.06);
-      border-radius: 12px; padding: 8px 14px;
-      font-size: clamp(0.65rem, 1.7vw, 0.8rem);
+      min-height: 52px; border: none; background: rgba(0,0,0,0.06);
+      border-radius: 16px; padding: 10px 20px;
+      font-size: clamp(0.78rem, 2vw, 0.95rem);
       font-weight: 700; color: #777; cursor: pointer;
       transition: background 0.2s, transform 0.2s; white-space: nowrap;
     }
 
+    .sketch-action-btn.primary { background: #fff; color: #555; box-shadow: 0 3px 10px rgba(0,0,0,0.08); }
+
+    .sketch-action-toolbar { margin-bottom: 0.45rem; }
+
+    .sketch-nav-row {
+      display: grid; grid-template-columns: 1fr auto 1fr; align-items: center;
+      gap: 10px; width: min(88vw, 430px); margin-bottom: 0.5rem;
+    }
+
+    .sketch-nav-btn {
+      min-height: 56px; padding: 10px 14px; border: 0; border-radius: 18px;
+      background: rgba(255,255,255,0.92); color: #555; box-shadow: 0 3px 12px rgba(0,0,0,0.08);
+      font-size: clamp(0.8rem, 2.3vw, 1rem); font-weight: 850; cursor: pointer;
+    }
+
+    .sketch-nav-btn.next { background: #FF6B6B; color: #fff; }
+    .sketch-nav-btn:disabled { opacity: 0.35; cursor: default; box-shadow: none; }
+    .sketch-nav-hint { color: #aaa; font-size: 0.68rem; font-weight: 800; text-align: center; white-space: nowrap; }
+
     .sketch-action-btn:hover { background: rgba(0,0,0,0.1); }
     .sketch-action-btn:active { transform: scale(0.95); }
-
-    .sketch-action-btn.skip {
-      background: rgba(0,0,0,0.04); color: #bbb;
-    }
 
     /* Celebration overlay */
     .sketch-celebration {
@@ -435,6 +458,12 @@
     .sketch-celebration .celeb-score {
       font-size: clamp(0.65rem, 1.8vw, 0.8rem);
       color: #4ECDC4; font-weight: 800; margin-top: 0.3rem;
+    }
+
+    .sketch-celeb-next {
+      min-height: 56px; margin-top: 1rem; padding: 12px 24px; border: 0; border-radius: 18px;
+      background: #FF6B6B; color: #fff; font-size: 1rem; font-weight: 900; cursor: pointer;
+      box-shadow: 0 5px 14px rgba(255,107,107,0.25);
     }
 
     /* ===== QUIZ SECTION ===== */
@@ -1274,6 +1303,17 @@
       .detail-letters { display: flex; align-items: baseline; gap: 0.3rem; }
       .detail-lower { margin-top: 0; }
     }
+
+    @media (max-width: 600px) and (max-height: 700px) {
+      .sketch-canvas-wrapper {
+        width: min(78vw, 48vh, 360px);
+        height: min(78vw, 48vh, 360px);
+      }
+      .sketch-coverage-section, .sketch-nav-row { width: min(78vw, 48vh, 360px); }
+      .sketch-helper { font-size: 0.72rem; }
+      .sketch-color-btn { width: 44px; height: 44px; min-height: 44px; }
+      .sketch-nav-btn { min-height: 50px; padding: 8px 10px; }
+    }
   </style>
 </head>
 <body>
@@ -1329,7 +1369,8 @@
   <!-- ===== SKETCH SECTION ===== -->
   <div class="sketch-section hidden" id="sketchSection">
     <div class="sketch-header">
-      <div class="sketch-prompt">Trace the letter <span class="sketch-letter-highlight" id="sketchLetterLabel">A</span> with your finger!</div>
+      <div class="sketch-prompt">Trace the big <span class="sketch-letter-highlight" id="sketchLetterLabel">A</span> with your finger!</div>
+      <div class="sketch-helper">Draw on the letter with one finger ✏️</div>
     </div>
 
     <!-- Progress + stats -->
@@ -1355,14 +1396,15 @@
         <div class="celeb-text">Great job!</div>
         <div class="celeb-sub">You traced the letter!</div>
         <div class="celeb-score"></div>
+        <button class="sketch-celeb-next" id="sketchCelebrationNext" type="button">Next letter →</button>
       </div>
     </div>
 
     <!-- Coverage meter -->
     <div class="sketch-coverage-section">
       <div class="sketch-coverage-label">
-        <span class="sketch-coverage-label-text">Tracing accuracy</span>
-        <span class="sketch-coverage-pct" id="coveragePct">0%</span>
+        <span class="sketch-coverage-label-text">Trace stars</span>
+        <span class="sketch-coverage-pct" id="coveragePct" aria-label="No trace stars yet">☆☆☆☆☆</span>
       </div>
       <div class="sketch-coverage-track">
         <div class="sketch-coverage-fill" id="coverageFill"></div>
@@ -1373,14 +1415,20 @@
     <!-- Feedback -->
     <div class="sketch-feedback" id="sketchFeedback">Start tracing! ✏️</div>
 
-    <!-- Toolbar: colors + sizes -->
+    <!-- Toolbar: a small set of large, easy-to-tap colors -->
     <div class="sketch-toolbar" id="sketchToolbar"></div>
 
     <!-- Actions -->
-    <div class="sketch-toolbar">
-      <button class="sketch-action-btn" onclick="clearSketch()">🗑️ Clear</button>
+    <div class="sketch-toolbar sketch-action-toolbar">
+      <button class="sketch-action-btn primary" onclick="clearSketch()">🗑️ Clear</button>
       <button class="sketch-action-btn" onclick="undoSketch()">↩️ Undo</button>
-      <button class="sketch-action-btn skip" onclick="skipSketchLetter()">⏭️ Skip</button>
+    </div>
+
+    <!-- Clear letter navigation for small hands -->
+    <div class="sketch-nav-row" aria-label="Sketch letter navigation">
+      <button class="sketch-nav-btn" id="sketchPreviousBtn" type="button" aria-label="Previous letter">← <span>Back</span></button>
+      <span class="sketch-nav-hint">Choose a letter</span>
+      <button class="sketch-nav-btn next" id="sketchNextBtn" type="button" aria-label="Next letter"><span>Next</span> →</button>
     </div>
   </div>
 
@@ -1589,6 +1637,36 @@
     } catch (e) { /* Storage can be unavailable in private browsing. */ }
   }
 
+  function loadSketchProgress() {
+    sketchShuffledLetters = [...LETTERS];
+    sketchQueueIndex = 0;
+    sketchCompletedSet = new Set();
+    try {
+      const saved = JSON.parse(localStorage.getItem(SKETCH_PROGRESS_KEY) || '{}');
+      const progress = saved[currentMode] || {};
+      const completed = Array.isArray(progress.completed)
+        ? progress.completed.filter(letter => LETTERS.includes(letter))
+        : [];
+      sketchCompletedSet = new Set(completed);
+      sketchQueueIndex = Number.isInteger(progress.current)
+        ? Math.min(Math.max(progress.current, 0), LETTERS.length - 1)
+        : 0;
+      if (progress.case === 'upper' || progress.case === 'lower') sketchCase = progress.case;
+    } catch (e) { /* The sketch starts at A when storage is unavailable. */ }
+  }
+
+  function saveSketchProgress() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(SKETCH_PROGRESS_KEY) || '{}');
+      saved[currentMode] = {
+        completed: [...sketchCompletedSet],
+        current: sketchQueueIndex,
+        case: sketchCase
+      };
+      localStorage.setItem(SKETCH_PROGRESS_KEY, JSON.stringify(saved));
+    } catch (e) { /* The sketch still works when browser storage is unavailable. */ }
+  }
+
   // Quiz state
   let quizLetters = [];
   let quizIndex = 0;
@@ -1631,15 +1709,17 @@
   let numbersTraceAdvanceTimer = null;
 
   // Sketch state
-  let sketchShuffledLetters = [];       // Randomized order of letters
-  let sketchQueueIndex = 0;             // Current position in shuffled queue
+  let sketchShuffledLetters = [];       // Fixed A-to-Z order for predictable navigation
+  let sketchQueueIndex = 0;             // Current position in the letter queue
   let sketchCompletedSet = new Set();   // Letters successfully traced
   let sketchCase = 'upper';
   let sketchColor = '#FF6B6B';
   let sketchLineWidth = 30;
+  let sketchAdvanceTimer = null;
 
   // Coverage verification
   const COVERAGE_THRESHOLD = 0.4;        // A forgiving practice threshold for small hands.
+  const SKETCH_PROGRESS_KEY = 'alphabet-animal-sketch-progress-v1';
 
   // ============================================================
   // DOM REFERENCES
@@ -1691,6 +1771,9 @@
   const coverageFill       = document.getElementById('coverageFill');
   const coverageThreshold  = document.getElementById('coverageThreshold');
   const sketchFeedback     = document.getElementById('sketchFeedback');
+  const sketchPreviousBtn  = document.getElementById('sketchPreviousBtn');
+  const sketchNextBtn      = document.getElementById('sketchNextBtn');
+  const sketchCelebrationNext = document.getElementById('sketchCelebrationNext');
 
   const sketchTrace = createTraceController({
     getElements: () => ({
@@ -1966,6 +2049,7 @@
     moreButton.classList.toggle('active', isAdvanced);
 
     letterGrid.style.display = tab === 'letters' ? '' : 'none';
+    homePage.classList.toggle('sketch-mode', tab === 'sketch');
     document.getElementById('modeStrip').style.display = tab === 'letters' ? '' : 'none';
     sketchSection.classList.toggle('hidden', tab !== 'sketch');
     quizSection.classList.toggle('hidden', tab !== 'quiz');
@@ -2017,7 +2101,8 @@
     // Keep each learning world independent and restore it after a reload.
     visitedLetters = loadVisitedLetters(mode);
     completionShown = false;
-    sketchCompletedSet.clear();
+    sketchShuffledLetters = [];
+    sketchCompletedSet = new Set();
     quizScore = 0;
     quizStreak = 0;
     sketchQueueIndex = 0;
@@ -2156,7 +2241,9 @@
       const elements = getElements();
       const pct = Math.round(coverage * 100);
       if (elements.coveragePct) {
-        elements.coveragePct.textContent = pct + '%';
+        const stars = Math.min(5, Math.max(0, Math.ceil(coverage * 5)));
+        elements.coveragePct.textContent = '⭐'.repeat(stars) + '☆'.repeat(5 - stars);
+        elements.coveragePct.setAttribute('aria-label', `${stars} of 5 trace stars`);
         elements.coveragePct.classList.remove('good', 'great');
       }
       if (elements.coverageFill) {
@@ -2472,12 +2559,14 @@
     return sketchCase === 'upper' ? letter : letter.toLowerCase();
   }
 
-  /** Initialize sketch tab - shuffle letters, reset state */
+  /** Initialize sketch tab with a predictable, resumable A-to-Z queue. */
   function initSketch() {
-    if (sketchShuffledLetters.length === 0 || sketchCompletedSet.size >= 26) {
-      sketchShuffledLetters = shuffleArray(LETTERS);
+    if (sketchShuffledLetters.length === 0) loadSketchProgress();
+    if (sketchCompletedSet.size >= LETTERS.length) {
+      sketchShuffledLetters = [...LETTERS];
       sketchQueueIndex = 0;
       sketchCompletedSet = new Set();
+      saveSketchProgress();
     }
 
     resizeSketchCanvas();
@@ -2495,13 +2584,9 @@
     const toolbar = document.getElementById('sketchToolbar');
     const colors = [
       { color: '#FF6B6B', name: 'Red' },
-      { color: '#FF9F43', name: 'Orange' },
-      { color: '#FECA57', name: 'Yellow' },
       { color: '#48DBFB', name: 'Blue' },
       { color: '#1DD1A1', name: 'Green' },
       { color: '#BB8FCE', name: 'Purple' },
-      { color: '#FF6FA7', name: 'Pink' },
-      { color: '#333333', name: 'Black' },
     ];
 
     toolbar.innerHTML = '';
@@ -2513,6 +2598,7 @@
       btn.style.background = c.color;
       btn.dataset.color = c.color;
       btn.title = c.name;
+      btn.setAttribute('aria-label', `${c.name} crayon`);
       btn.addEventListener('click', () => {
         sketchColor = c.color;
         toolbar.querySelectorAll('.sketch-color-btn').forEach(b => b.classList.remove('active'));
@@ -2532,6 +2618,9 @@
     sketchLetterLabel.textContent = displayLetter;
     document.getElementById('sketchCurrentDisplay').textContent = displayLetter;
     document.getElementById('sketchDoneCount').textContent = sketchCompletedSet.size;
+    sketchPreviousBtn.disabled = sketchQueueIndex === 0;
+    sketchNextBtn.disabled = sketchCompletedSet.size >= LETTERS.length;
+    saveSketchProgress();
     sketchTrace.invalidateGuide();
   }
 
@@ -2542,6 +2631,7 @@
     document.getElementById('sketchLowerBtn').classList.toggle('active', c === 'lower');
     updateSketchUI();
     clearSketch();
+    saveSketchProgress();
     playTapSound();
   }
 
@@ -2569,50 +2659,50 @@
     sketchTrace.updateFeedbackMessage(coverage);
   }
 
-  /** Randomize the crayon color for the next letter */
-  function randomizeSketchColor() {
-    const colors = ['#FF6B6B','#FF9F43','#FECA57','#48DBFB','#1DD1A1','#BB8FCE','#FF6FA7','#333333'];
-    let newColor;
-    do {
-      newColor = colors[Math.floor(Math.random() * colors.length)];
-    } while (newColor === sketchColor && colors.length > 1);
-
-    sketchColor = newColor;
-
-    const toolbar = document.getElementById('sketchToolbar');
-    if (toolbar) {
-      toolbar.querySelectorAll('.sketch-color-btn').forEach(btn => {
-        btn.classList.remove('active');
-        if (btn.dataset.color === sketchColor) btn.classList.add('active');
-      });
-    }
-  }
-
-  function skipSketchLetter() {
-    playTapSound();
-    advanceSketchLetter();
-  }
-
-  /** Advance to the next letter in the shuffled queue */
-  function advanceSketchLetter() {
-    if (sketchQueueIndex < sketchShuffledLetters.length - 1) {
-      sketchQueueIndex++;
-    } else {
-      if (sketchCompletedSet.size >= 26) {
-        showSketchComplete();
-        return;
-      }
-      const remaining = LETTERS.filter(l => !sketchCompletedSet.has(l));
-      sketchShuffledLetters = shuffleArray(remaining);
-      sketchQueueIndex = 0;
-    }
-    randomizeSketchColor();
+  function moveToSketchLetter(index) {
+    sketchQueueIndex = Math.min(Math.max(index, 0), LETTERS.length - 1);
     updateSketchUI();
     clearSketch();
+    speakText(`Trace ${getCurrentSketchDisplay()}`);
+  }
+
+  function previousSketchLetter() {
+    if (sketchQueueIndex <= 0) return;
+    playTapSound();
+    moveToSketchLetter(sketchQueueIndex - 1);
+  }
+
+  /** Advance through the fixed A-to-Z queue, skipping completed letters. */
+  function nextSketchLetter() {
+    if (sketchCompletedSet.size >= LETTERS.length) {
+      showSketchComplete();
+      return;
+    }
+
+    let nextIndex = sketchQueueIndex + 1;
+    while (nextIndex < LETTERS.length && sketchCompletedSet.has(LETTERS[nextIndex])) nextIndex++;
+    if (nextIndex >= LETTERS.length) {
+      nextIndex = LETTERS.findIndex(letter => !sketchCompletedSet.has(letter));
+    }
+    if (nextIndex >= 0) moveToSketchLetter(nextIndex);
+  }
+
+  /** Advance after a success, with the button available immediately. */
+  function advanceSketchLetter() {
+    if (sketchAdvanceTimer) {
+      clearTimeout(sketchAdvanceTimer);
+      sketchAdvanceTimer = null;
+    }
+    nextSketchLetter();
   }
 
   /** Show completion message for sketch mode */
   function showSketchComplete() {
+    if (sketchAdvanceTimer) {
+      clearTimeout(sketchAdvanceTimer);
+      sketchAdvanceTimer = null;
+    }
+    sketchCelebrationNext.textContent = 'Start again ↻';
     sketchTrace.showCelebration({
       emoji: '🏆',
       text: 'All 26 letters traced!',
@@ -2623,13 +2713,17 @@
     launchConfetti();
     speakPraise("Oh my goodness! You traced all 26 letters! You are an alphabet superstar!");
 
-    setTimeout(() => {
-      sketchShuffledLetters = shuffleArray(LETTERS);
-      sketchQueueIndex = 0;
-      sketchCompletedSet = new Set();
-      updateSketchUI();
-      clearSketch();
-    }, 5000);
+    setTimeout(restartSketchJourney, 5000);
+  }
+
+  function restartSketchJourney() {
+    sketchShuffledLetters = [...LETTERS];
+    sketchQueueIndex = 0;
+    sketchCompletedSet = new Set();
+    saveSketchProgress();
+    sketchCelebrationNext.textContent = 'Next letter →';
+    updateSketchUI();
+    clearSketch();
   }
 
   /** Celebrate a successful trace! */
@@ -2637,13 +2731,12 @@
     const letter = getCurrentSketchLetter();
     const d = DATA[letter];
     const displayLetter = getCurrentSketchDisplay();
-    const pct = Math.round(coverage * 100);
-
+    sketchCelebrationNext.textContent = 'Next letter →';
     sketchTrace.showCelebration({
       emoji: d.emoji,
       text: `Great job tracing ${displayLetter}!`,
       sub: `${letter} is for ${d.animal}!`,
-      score: `Accuracy: ${pct}% ⭐`
+      score: 'You earned a star! ⭐'
     });
     sketchTrace.setFeedback('Perfect! ⭐🎉', 'success');
 
@@ -2652,14 +2745,14 @@
 
     sketchCompletedSet.add(letter);
     visitedLetters.add(letter);
+    saveVisitedLetters();
+    saveSketchProgress();
     updateProgress();
     document.getElementById('sketchDoneCount').textContent = sketchCompletedSet.size;
 
     launchMiniConfetti();
 
-    setTimeout(() => {
-      advanceSketchLetter();
-    }, 3500);
+    sketchAdvanceTimer = setTimeout(advanceSketchLetter, 6000);
   }
 
   /** Small confetti burst for sketch celebrations */
@@ -2678,6 +2771,13 @@
       setTimeout(() => piece.remove(), (duration + delay) * 1000 + 100);
     }
   }
+
+  sketchPreviousBtn.addEventListener('click', previousSketchLetter);
+  sketchNextBtn.addEventListener('click', nextSketchLetter);
+  sketchCelebrationNext.addEventListener('click', () => {
+    if (sketchCompletedSet.size >= LETTERS.length) restartSketchJourney();
+    else advanceSketchLetter();
+  });
 
   // Resize handler
   window.addEventListener('resize', () => {
